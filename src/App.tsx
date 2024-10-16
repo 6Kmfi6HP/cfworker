@@ -6,7 +6,6 @@ import {
   Input,
   Modal,
   Space,
-  Tag,
   Tooltip,
   message,
   Switch,
@@ -17,6 +16,8 @@ import axios from "axios";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from 'uuid';
 import Footer from './Footer';
+import { useTranslation } from 'react-i18next';
+import i18n from './i18n'; // Import the i18n instance from the correct file
 
 import img from "./getGlobalAPIKey.png";
 
@@ -30,6 +31,8 @@ import { ThemeProvider, useTheme } from './ThemeContext';
 
 import './theme.css';
 
+import { Helmet } from 'react-helmet';
+
 function App() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -41,12 +44,26 @@ function App() {
   );
   const [form] = Form.useForm();
   const [isNodeGenerated, setIsNodeGenerated] = useState(false);
+  const { t } = useTranslation();
+  const [selectedLanguage, setSelectedLanguage] = useState('');
 
-  // Load saved form data on component mount
+  // Load saved form data and language on component mount
   useEffect(() => {
     const savedFormData = localStorage.getItem('cfWorkerFormData');
     if (savedFormData) {
       form.setFieldsValue(JSON.parse(savedFormData));
+    }
+
+    // Load saved language or use browser language
+    const savedLanguage = localStorage.getItem('selectedLanguage');
+    if (savedLanguage) {
+      setSelectedLanguage(savedLanguage);
+      i18n.changeLanguage(savedLanguage);
+    } else {
+      const browserLang = navigator.language.split('-')[0];
+      const supportedLang = ['en', 'zh'].includes(browserLang) ? browserLang : 'en';
+      setSelectedLanguage(supportedLang);
+      i18n.changeLanguage(supportedLang);
     }
   }, [form]);
 
@@ -68,15 +85,15 @@ function App() {
 
       setNode(data.node);
       setUrl(data.url);
-      setIsNodeGenerated(true);  // 设置节点已生成
-      message.success("Worker 节点创建成功！");
+      setIsNodeGenerated(true);
+      message.success(t('workerCreationSuccess'));
     } catch (error) {
       console.error("创建 Worker 节点失败:", error);
-      message.error("创建 Worker 节点失败，请检查您的输入并重试。");
+      message.error(t('workerCreationFail'));
     }
 
     setLoading(false);
-  }, [form]);
+  }, [form, t]);
 
   const generateUUID = () => {
     const newUUID = uuidv4();
@@ -95,12 +112,12 @@ function App() {
   const clearSavedData = () => {
     localStorage.removeItem('cfWorkerFormData');
     form.resetFields();
-    message.success("已清除保存的数据");
+    message.success(t('dataClearedSuccess'));
   };
 
   // Add this useEffect hook to set the document title
   useEffect(() => {
-    document.title = "CF Worker 节点搭建";
+    document.title = "CF Worker VLESS 节点搭建";
   }, []);
 
   // Add these new hooks for theme management
@@ -135,11 +152,26 @@ function App() {
     color: theme === 'dark' ? '#ffffff' : '#333333',
   };
 
+  const handleLanguageChange = (value: string) => {
+    console.log('Language changed to:', value);
+    setSelectedLanguage(value);
+    i18n.changeLanguage(value);
+    localStorage.setItem('selectedLanguage', value);
+  };
+
   return (
     <div className={`page ${theme}`}>
+      <Helmet>
+        <title>{t('title')} | Easy Cloudflare Worker Management</title>
+        <meta name="description" content={t('metaDescription')} />
+        <meta property="og:title" content={`${t('title')} | Easy Cloudflare Worker Management`} />
+        <meta property="og:description" content={t('metaDescription')} />
+        <meta name="twitter:title" content={`${t('title')} | Easy Cloudflare Worker Management`} />
+        <meta name="twitter:description" content={t('metaDescription')} />
+      </Helmet>
       <div className="header">
         <h1>
-          CF Worker 节点搭建
+          {t('title')}
           <Switch
             checkedChildren={<SunOutlined />}
             unCheckedChildren={<MoonOutlined />}
@@ -147,11 +179,18 @@ function App() {
             onChange={() => setTheme(theme === 'light' ? 'dark' : 'light')}
             style={{ marginLeft: '10px' }}
           />
+          <Switch
+            checkedChildren="EN"
+            unCheckedChildren="中"
+            checked={selectedLanguage === 'en'}
+            onChange={(checked) => handleLanguageChange(checked ? 'en' : 'zh')}
+            style={{ marginLeft: '10px' }}
+          />
         </h1>
         <p>
-          需要提供 CloudFlare 账号的 <Tag color="blue">邮箱</Tag> 和 <Tag color="blue">Global API Key</Tag>{" "}
+          {t('apiKeyDescription')}
           <Button size="large" color="default" type="link" onClick={() => setOpen(true)}>
-            如何获取 Global API Key
+            {t('howToGetApiKey')}
           </Button>
         </p>
       </div>
@@ -164,15 +203,9 @@ function App() {
         }}
       >
         <Image src={img} alt="" />
-        <p>
-          1. 登录 CloudFlare 账号，进入 <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank">API Tokens</a> 页面。
-        </p>
-        <p>
-          2. 找到 <b>Global API Key</b> 并复制。
-        </p>
-        <p>
-          3. 将 <b>Global API Key</b> 粘贴到下面的输入框中。
-        </p>
+        <p dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions1') }} />
+        <p dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions2') }} />
+        <p dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions3') }} />
       </Modal>
 
       <Form
@@ -185,24 +218,25 @@ function App() {
             {
               required: true,
               type: "email",
-              message: "请输入 CloudFlare 账号的 邮箱",
+              message: t('emailTooltip'),
             },
           ]}
-          label={<Tooltip title="CloudFlare 账号的 邮箱">邮箱</Tooltip>}
+          label={<Tooltip title={t('emailTooltip')}>{t('email')}</Tooltip>}
           name={"email"}
+          aria-label={t('email')}
         >
-          <Input />
+          <Input aria-describedby="email-tooltip" />
         </Form.Item>
         <Form.Item
           rules={[
             {
               required: true,
-              message: "请输入 CloudFlare 账号的  Global API Key",
+              message: t('globalAPIKeyTooltip'),
             },
           ]}
           label={
-            <Tooltip title="CloudFlare 账号的  Global API Key">
-              Global API Key
+            <Tooltip title={t('globalAPIKeyTooltip')}>
+              {t('globalAPIKey')}
             </Tooltip>
           }
           name={"globalAPIKey"}
@@ -215,20 +249,20 @@ function App() {
           items={[
             {
               key: "1",
-              label: "额外参数",
+              label: t('additionalParams'),
               children: (
                 <>
                   <Form.Item
                     label={
-                      <Tooltip title="CloudFlare Worker 的名字">
-                        Worker名称
+                      <Tooltip title={t('workerNameTooltip')}>
+                        {t('workerName')}
                       </Tooltip>
                     }
                     name={"workerName"}
                   >
                     <Input
                       suffix={
-                        <Tooltip title="生成随机Worker名称">
+                        <Tooltip title={t('workerNameTooltip')}>
                           <Button
                             type="text"
                             icon={<ReloadOutlined />}
@@ -240,12 +274,12 @@ function App() {
                     />
                   </Form.Item>
                   <Form.Item
-                    label={<Tooltip title="节点的uuid">UUID</Tooltip>}
+                    label={<Tooltip title={t('uuidTooltip')}>{t('uuid')}</Tooltip>}
                     name={"uuid"}
                   >
                     <Input
                       suffix={
-                        <Tooltip title="生成新的UUID">
+                        <Tooltip title={t('uuidTooltip')}>
                           <Button
                             type="text"
                             icon={<ReloadOutlined />}
@@ -257,7 +291,7 @@ function App() {
                     />
                   </Form.Item>
                   <Form.Item
-                    label={<Tooltip title="节点的名字">节点名</Tooltip>}
+                    label={<Tooltip title={t('nodeNameTooltip')}>{t('nodeName')}</Tooltip>}
                     name={"nodeName"}
                   >
                     <Input />
@@ -275,13 +309,13 @@ function App() {
             onClick={createWorker}
             icon={<CloudUploadOutlined />}
           >
-            创建 Worker 节点
+            {t('createWorkerNode')}
           </Button>
           <Button
             onClick={clearSavedData}
             icon={<DeleteOutlined />}
           >
-            清除保存的数据
+            {t('clearSavedData')}
           </Button>
         </Space>
       </Form>
@@ -290,7 +324,7 @@ function App() {
         style={nodeOutputStyle}
         className={`node-output ${isNodeGenerated ? 'active' : 'blurred'}`}
       >
-        <h2 style={titleStyle}>Worker 节点地址:</h2>
+        <h2 style={titleStyle}>{t('workerNodeAddress')}</h2>
         <Space direction="vertical" style={{ width: '100%' }}>
           <Space className="action-buttons">
             <Button
@@ -303,7 +337,7 @@ function App() {
               icon={<ThunderboltOutlined />}
               className="btn-clash"
             >
-              导入到 Clash
+              {t('importToClash')}
             </Button>
             <Button
               disabled={!isNodeGenerated}
@@ -315,7 +349,7 @@ function App() {
               icon={<RocketOutlined />}
               className="btn-shadowrocket"
             >
-              导入到小火箭
+              {t('importToShadowrocket')}
             </Button>
             <Button
               disabled={!isNodeGenerated}
@@ -324,18 +358,18 @@ function App() {
               icon={<AccountBookFilled />}
               className="btn-manage"
             >
-              管理节点
+              {t('manageNode')}
             </Button>
           </Space>
           <CopyToClipboard
             text={node}
             onCopy={() => {
               if (isNodeGenerated) {
-                message.success("复制成功");
+                message.success(t('copiedSuccess'));
               }
             }}
           >
-            <p style={copyTextStyle}>{isNodeGenerated ? node : '节点信息将在这里显示'}</p>
+            <p style={copyTextStyle}>{isNodeGenerated ? node : t('nodeInfoPlaceholder')}</p>
           </CopyToClipboard>
         </Space>
       </div>
