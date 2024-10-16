@@ -1,4 +1,246 @@
 .page {
-   max-width: 750px;
-   margin: 0 auto; 
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333;
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  color: #1890ff;
+}
+
+p {
+  margin-bottom: 16px;
+}
+
+.ant-form-item {
+  margin-bottom: 24px;
+}
+
+.ant-btn {
+  height: 40px;
+  font-size: 16px;
+}
+
+.ant-input {
+  height: 40px;
+}
+
+.ant-form-item-label > label {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.node-output {
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  padding: 24px;
+  margin-top: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #1890ff;
+    margin-bottom: 20px;
+  }
+
+  .ant-space {
+    width: 100%;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    width: 100%;
+
+    .ant-btn {
+      flex: 1;
+      height: 40px;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all 0.3s;
+
+      &.btn-clash {
+        background-color: #1890ff;
+        border-color: #1890ff;
+        color: #fff;
+
+        &:hover, &:focus {
+          background-color: #40a9ff;
+          border-color: #40a9ff;
+        }
+      }
+
+      &.btn-shadowrocket {
+        background-color: #ff7875;
+        border-color: #ff7875;
+        color: #fff;
+
+        &:hover, &:focus {
+          background-color: #ff4d4f;
+          border-color: #ff4d4f;
+        }
+      }
+
+      &.btn-manage {
+        background-color: #52c41a;
+        border-color: #52c41a;
+        color: #fff;
+
+        &:hover, &:focus {
+          background-color: #73d13d;
+          border-color: #73d13d;
+        }
+      }
+    }
+  }
+
+  .copy-text {
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 12px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    word-break: break-all;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: #40a9ff;
+      box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+    }
+  }
+
+  &.blurred {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+  }
+
+  &.active {
+    filter: none;
+    pointer-events: auto;
+    user-select: auto;
+    opacity: 1;
+    transition: all 0.3s ease;
+  }
+}
+
+.header {
+  padding: 24px 0;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #e8e8e8;
+
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: #333;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 20px;
+  }
+
+  .ant-tag {
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .ant-btn-link {
+    font-size: 0.875rem;
+    padding: 0;
+    height: auto;
+    color: #1890ff;
+
+    &:hover {
+      color: #40a9ff;
+      text-decoration: underline;
+    }
+  }
+}
+
+body {
+  font-kerning: normal;
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 1201px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.footer {
+  margin-top: 48px;
+  padding: 24px 0;
+  border-top: 1px solid #e8e8e8;
+
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: #888;
+
+    p {
+      margin: 0;
+    }
+
+    a {
+      color: #1890ff;
+      text-decoration: none;
+      transition: color 0.3s;
+
+      &:hover {
+        color: #40a9ff;
+      }
+
+      .anticon {
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    .footer-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
 }

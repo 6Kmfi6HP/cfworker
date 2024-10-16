@@ -1,0 +1,299 @@
+body.light {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --header-color: #1890ff;
+  --border-color: #e8e8e8;
+  --input-bg: #ffffff;
+  --input-border: #d9d9d9;
+  --node-output-bg: #f0f2f5;
+  --node-output-border: #d9d9d9;
+  --copy-text-bg: #ffffff;
+  --copy-text-border: #d9d9d9;
+  --page-bg: #ffffff;
+  --text-secondary: #666666;
+  --node-output-title: #1890ff;
+  --node-output-text: #333333;
+}
+
+body.dark {
+  --bg-color: #1f1f1f;
+  --text-color: #ffffff;
+  --header-color: #40a9ff;
+  --border-color: #434343;
+  --input-bg: #141414;
+  --input-border: #434343;
+  --node-output-bg: #141414;
+  --node-output-border: #434343;
+  --copy-text-bg: #262626;
+  --copy-text-border: #434343;
+  --page-bg: #121212;
+  --text-secondary: #a0a0a0;
+  --node-output-title: #40a9ff;
+  --node-output-text: #ffffff;
+}
+
+body {
+  background-color: var(--page-bg);
+  margin: 0;
+  padding: 0;
+}
+
+.page {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--header-color);
+}
+
+.header h1 {
+  color: #333333;
+}
+
+/* 调整链接颜色 */
+a {
+  color: var(--header-color);
+}
+
+a:hover {
+  color: var(--text-color);
+}
+
+/* 调整标签颜色 */
+.ant-tag {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+/* 调整按钮样式 */
+.ant-btn {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+.ant-btn-primary {
+  background-color: var(--header-color);
+  border-color: var(--header-color);
+  color: #ffffff;
+}
+
+.ant-btn-primary:hover, .ant-btn-primary:focus {
+  background-color: var(--header-color);
+  border-color: var(--header-color);
+  opacity: 0.8;
+}
+
+/* 调整折叠面板样式 */
+.ant-collapse {
+  background-color: var(--bg-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.ant-collapse-item {
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+.ant-collapse-content {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+.ant-collapse-header {
+  color: var(--text-color) !important;
+}
+
+/* 确保最后一个折叠项没有底部边框 */
+.ant-collapse-item:last-child {
+  border-bottom: none !important;
+}
+
+/* 调整折叠面板内容的背景色 */
+.ant-collapse-content-box {
+  background-color: var(--bg-color) !important;
+}
+
+/* 调整输入框样式 */
+.ant-input {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+.ant-input:hover, .ant-input:focus {
+  border-color: var(--header-color);
+  background-color: var(--input-bg);
+}
+
+/* 调整开关样式 */
+.ant-switch {
+  background-color: var(--input-border);
+}
+
+.ant-switch-checked {
+  background-color: var(--header-color);
+}
+
+/* 调整模态框样式 */
+.ant-modal-content, .ant-modal-header {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.ant-modal-title {
+  color: var(--header-color);
+}
+
+/* 调整表单标签颜色 */
+.ant-form-item-label > label {
+  color: var(--text-color) !important;
+}
+
+/* 调整节点输出区域样式 */
+.node-output {
+  background-color: var(--node-output-bg);
+  border: 1px solid var(--node-output-border);
+  color: var(--node-output-text);
+  transition: filter 0.3s ease-in-out;
+}
+
+.node-output h2 {
+  color: var(--node-output-title);
+}
+
+.node-output .copy-text {
+  background-color: var(--copy-text-bg);
+  border-color: var(--copy-text-border);
+  color: var(--node-output-text);
+}
+
+/* 在文件的适当位置添加或修改这些样式 */
+
+/* 默认（浅色模式）logo 样式 */
+.header h1 {
+  color: #333333;
+}
+
+/* 深色模式 logo 样式 */
+body.dark .header h1 {
+  color: #ffffff;
+}
+
+/* 如果 logo 是一个图片，可以使用以下样式 */
+body.dark .header img.logo {
+  filter: invert(1);
+}
+
+/* 调整说明文字的样式 */
+.header p {
+  color: var(--text-secondary);
+}
+
+/* 调整标签的样式 */
+.ant-tag {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+/* 调整链接按钮的样式 */
+.ant-btn-link {
+  color: var(--header-color);
+}
+
+.ant-btn-link:hover, .ant-btn-link:focus {
+  color: var(--text-color);
+}
+
+/* 调整按钮样式 */
+.node-output .ant-btn {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+.node-output .ant-btn-primary {
+  background-color: var(--header-color);
+  border-color: var(--header-color);
+  color: #ffffff;
+}
+
+.node-output .ant-btn:hover,
+.node-output .ant-btn:focus {
+  border-color: var(--header-color);
+  color: var(--header-color);
+}
+
+.node-output .ant-btn-primary:hover,
+.node-output .ant-btn-primary:focus {
+  background-color: var(--header-color);
+  opacity: 0.8;
+  color: #ffffff;
+}
+
+/* 调整模糊效果 */
+.node-output.blurred {
+  filter: blur(5px);
+  pointer-events: none;
+}
+
+.node-output.active {
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+/* 额外参数折叠面板样式 */
+.ant-collapse-content-box {
+  background-color: var(--bg-color) !important;
+}
+
+/* 确保折叠面板内的输入框也遵循深色模式 */
+.ant-collapse .ant-input,
+.ant-collapse .ant-input-affix-wrapper {
+  background-color: var(--input-bg) !important;
+  border-color: var(--input-border) !important;
+  color: var(--text-color) !important;
+}
+
+.ant-collapse .ant-input:hover,
+.ant-collapse .ant-input:focus,
+.ant-collapse .ant-input-affix-wrapper:hover,
+.ant-collapse .ant-input-affix-wrapper:focus {
+  border-color: var(--header-color) !important;
+  background-color: var(--input-bg) !important;
+}
+
+/* 输入框内的文字颜色 */
+.ant-collapse .ant-input-affix-wrapper input {
+  color: var(--text-color) !important;
+  background-color: transparent !important;
+}
+
+/* 输入框后缀按钮样式 */
+.ant-collapse .ant-input-suffix .ant-btn {
+  background-color: transparent !important;
+  border: none !important;
+  color: var(--text-color) !important;
+}
+
+.ant-collapse .ant-input-suffix .ant-btn:hover {
+  color: var(--header-color) !important;
+}
+
+/* 确保深色模式下的文字颜色正确 */
+body.dark {
+  --text-color: #ffffff;
+  --text-secondary: #a0a0a0;
+  --input-bg: #1f1f1f;
+  --input-border: #434343;
+  --bg-color: #141414;
+}
+
+/* 调整表单标签颜色 */
+.ant-form-item-label > label {
+  color: var(--text-color) !important;
+}
