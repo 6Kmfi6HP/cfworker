@@ -41,7 +41,17 @@ i18n
           apiKeyInstructions2: "2. Find the <b>Global API Key</b> and copy it.",
           apiKeyInstructions3:
             "3. Paste the <b>Global API Key</b> into the input box below.",
-          metaDescription: "Create and manage Cloudflare Worker VLESS nodes easily with our user-friendly interface. Optimize your network performance and security.",
+          metaDescription:
+            "Create and manage Cloudflare Worker VLESS nodes easily with our user-friendly interface. Optimize your network performance and security.",
+          proxyIp: "Proxy IP",
+          proxyIpTooltip:
+            "Optional proxy IP address (default: cdn.xn--b6gac.eu.org:443)",
+          customDomain: "Custom Domain",
+          customDomainTooltip: "Optional custom domain for the worker",
+          socks5Relay: "Enable SOCKS5 Relay",
+          socks5RelayTooltip: "Enable SOCKS5 relay (optional)",
+          socks5Proxy: "SOCKS5 Proxy",
+          socks5ProxyTooltip: "Optional SOCKS5 proxy address",
         },
       },
       zh: {
@@ -77,7 +87,17 @@ i18n
           apiKeyInstructions2: "2. 找到 <b>Global API Key</b> 并复制。",
           apiKeyInstructions3:
             "3. 将 <b>Global API Key</b> 粘贴到下面的输入框中。",
-          metaDescription: "轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。",
+          metaDescription:
+            "轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。",
+          proxyIp: "PROXYIP",
+          proxyIpTooltip: "代理 Cloudflare CDN IP 地址（可选）",
+          customDomain: "自定义域名",
+          customDomainTooltip: "设置 Workers 的自定义域名（可选）",
+          socks5Relay: "启用 SOCKS5 中继",
+          socks5RelayTooltip: "使用 Workers 中继 socks5 代理（可选）",
+          socks5Proxy: "SOCKS5 代理",
+          socks5ProxyTooltip:
+            "SOCKS5 代理地址 用于代理 workers 访问 cloudflare cdn 网站（可选）",
         },
       },
     },

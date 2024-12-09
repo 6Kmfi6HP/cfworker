@@ -78,9 +78,15 @@ function App() {
     try {
       const formData = await form.validateFields();
       console.log(formData);
+
+      // Filter out empty or undefined values
+      const filteredFormData = Object.fromEntries(
+        Object.entries(formData).filter(([_, value]) => value !== '' && value !== undefined)
+      );
       const { data } = await axios.post(
         "https://cfworkerback-pages.pages.dev/createWorker",
-        formData
+        // "http://localhost:5173/createWorker",
+        filteredFormData
       );
 
       setNode(data.node);
@@ -89,7 +95,11 @@ function App() {
       message.success(t('workerCreationSuccess'));
     } catch (error) {
       console.error("创建 Worker 节点失败:", error);
-      message.error(t('workerCreationFail'));
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        message.error(t('workerCreationFail') + ": " + error.response.data.error);
+      } else {
+        message.error(t('workerCreationFail') + ": " + (error instanceof Error ? error.message : String(error)));
+      }
     }
 
     setLoading(false);
@@ -293,6 +303,43 @@ function App() {
                   <Form.Item
                     label={<Tooltip title={t('nodeNameTooltip')}>{t('nodeName')}</Tooltip>}
                     name={"nodeName"}
+                  >
+                    <Input />
+                  </Form.Item>
+                  <Form.Item
+                    label={<Tooltip title={t('socks5RelayTooltip')}>{t('socks5Relay')}</Tooltip>}
+                    name="socks5Relay"
+                    valuePropName="checked"
+                  >
+                    <Switch />
+                  </Form.Item>
+
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) => prevValues.socks5Relay !== currentValues.socks5Relay}
+                  >
+                    {({ getFieldValue }) =>
+                      !getFieldValue('socks5Relay') && (
+                        <Form.Item
+                          label={<Tooltip title={t('proxyIpTooltip')}>{t('proxyIp')}</Tooltip>}
+                          name="proxyIp"
+                        >
+                          <Input placeholder="cdn.xn--b6gac.eu.org:443" />
+                        </Form.Item>
+                      )
+                    }
+                  </Form.Item>
+
+                  <Form.Item
+                    label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
+                    name="customDomain"
+                  >
+                    <Input />
+                  </Form.Item>
+
+                  <Form.Item
+                    label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
+                    name="socks5Proxy"
                   >
                     <Input />
                   </Form.Item>
