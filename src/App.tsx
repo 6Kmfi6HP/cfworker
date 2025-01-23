@@ -33,6 +33,9 @@ import './theme.css';
 
 import { Helmet } from 'react-helmet';
 
+// Near the top of the file, add this constant
+const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || "https://cfworkerback-pages5.pages.dev/createWorker";
+
 function App() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -84,8 +87,7 @@ function App() {
         Object.entries(formData).filter(([_, value]) => value !== '' && value !== undefined)
       );
       const { data } = await axios.post(
-        "https://cfworkerback-pages.pages.dev/createWorker",
-        // "http://localhost:5173/createWorker",
+        API_ENDPOINT,
         filteredFormData
       );
 
@@ -324,7 +326,7 @@ function App() {
                           label={<Tooltip title={t('proxyIpTooltip')}>{t('proxyIp')}</Tooltip>}
                           name="proxyIp"
                         >
-                          <Input placeholder="cdn.xn--b6gac.eu.org:443" />
+                          <Input placeholder="cdn.xn--b6gac.eu.org:443 or 1.1.1.1:443,2.2.2.2,[2a01:4f8:c2c:123f:64:5:6810:c55a]" />
                         </Form.Item>
                       )
                     }
@@ -334,14 +336,14 @@ function App() {
                     label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
                     name="customDomain"
                   >
-                    <Input />
+                    <Input placeholder="edtunnel.example.com" />
                   </Form.Item>
 
                   <Form.Item
                     label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
                     name="socks5Proxy"
                   >
-                    <Input />
+                    <Input placeholder="user:pass@host:port (Multiple): user1:pass1@host1:port1,user2:pass2@host2:port2" />
                   </Form.Item>
                 </>
               ),
