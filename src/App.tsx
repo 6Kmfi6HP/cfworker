@@ -11,13 +11,22 @@ import {
   Switch,
 } from "antd";
 import { CloudUploadOutlined, ThunderboltOutlined, RocketOutlined, ReloadOutlined, AccountBookFilled, DeleteOutlined, SunOutlined, MoonOutlined } from "@ant-design/icons";
+import { FacebookShareButton, TwitterShareButton, TelegramShareButton, WhatsappShareButton, FacebookIcon, TwitterIcon, TelegramIcon, WhatsappIcon } from 'react-share';
 import { useCallback, useState, useEffect } from "react";
 import axios from "axios";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { v4 as uuidv4 } from 'uuid';
 import Footer from './Footer';
 import { useTranslation } from 'react-i18next';
-import i18n from './i18n'; // Import the i18n instance from the correct file
+import i18n from './i18n';
+
+// 获取随机分享文案的函数
+const getRandomShareText = () => {
+  const { t } = useTranslation();
+  const shareTexts = t('shareTexts', { returnObjects: true }) as string[];
+  const randomIndex = Math.floor(Math.random() * shareTexts.length);
+  return shareTexts[randomIndex];
+}; // Import the i18n instance from the correct file
 
 import img from "./getGlobalAPIKey.png";
 
@@ -39,6 +48,7 @@ const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT || "https://cfworkerback-
 function App() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [node, setNode] = useState(
     "vless://d342d11e-d424-4583-b36e-524ab1f0afa4@www.visa.com.sg:8880?encryption=none&security=none&type=ws&host=a.srps7gic.workers.dev&path=%2F%3Fed%3D2560#worker节点"
   );
@@ -94,6 +104,7 @@ function App() {
       setNode(data.node);
       setUrl(data.url);
       setIsNodeGenerated(true);
+      setShowShareModal(true); // 显示分享弹窗
       message.success(t('workerCreationSuccess'));
     } catch (error) {
       console.error("创建 Worker 节点失败:", error);
@@ -201,8 +212,18 @@ function App() {
         </h1>
         <p>
           {t('apiKeyDescription')}
+          <p>
           <Button size="large" color="default" type="link" onClick={() => setOpen(true)}>
             {t('howToGetApiKey')}
+          </Button>
+          </p>
+          
+          {/* link to youtube channel tour video */}
+          <Button size="large" color="default" type="link" href="https://youtu.be/PZMbH7awZRE?si=UxohdialRXq8dL2F"
+            target="_blank"
+            rel="noopener noreferrer" // Add these attributes
+          >
+            {t('Towatchvideo')}
           </Button>
         </p>
       </div>
@@ -409,6 +430,36 @@ function App() {
             >
               {t('manageNode')}
             </Button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <FacebookShareButton
+                url={window.location.href}
+                hashtag={`#CFWorker ${getRandomShareText()}`}
+                disabled={!isNodeGenerated}
+              >
+                <FacebookIcon size={32} round />
+              </FacebookShareButton>
+              <TwitterShareButton
+                url={window.location.href}
+                title={getRandomShareText()}
+                disabled={!isNodeGenerated}
+              >
+                <TwitterIcon size={32} round />
+              </TwitterShareButton>
+              <TelegramShareButton
+                url={window.location.href}
+                title={getRandomShareText()}
+                disabled={!isNodeGenerated}
+              >
+                <TelegramIcon size={32} round />
+              </TelegramShareButton>
+              <WhatsappShareButton
+                url={window.location.href}
+                title={getRandomShareText()}
+                disabled={!isNodeGenerated}
+              >
+                <WhatsappIcon size={32} round />
+              </WhatsappShareButton>
+            </div>
           </Space>
           <CopyToClipboard
             text={node}
@@ -424,6 +475,45 @@ function App() {
       </div>
 
       <Footer />
+
+      <Modal
+        title={t('title')}
+        open={showShareModal}
+        onCancel={() => setShowShareModal(false)}
+        footer={[
+          <Button key="close" onClick={() => setShowShareModal(false)}>
+            {t('close')}
+          </Button>
+        ]}
+      >
+        <p style={{ marginBottom: '20px' }}>{t('shareDescription')}</p>
+        <Space style={{ width: '100%', justifyContent: 'center', gap: '16px' }}>
+          <FacebookShareButton
+            url={window.location.href}
+            hashtag={`#CFWorker ${getRandomShareText()}`}
+          >
+            <FacebookIcon size={64} round />
+          </FacebookShareButton>
+          <TwitterShareButton
+            url={window.location.href}
+            title={getRandomShareText()}
+          >
+            <TwitterIcon size={64} round />
+          </TwitterShareButton>
+          <TelegramShareButton
+            url={window.location.href}
+            title={getRandomShareText()}
+          >
+            <TelegramIcon size={64} round />
+          </TelegramShareButton>
+          <WhatsappShareButton
+            url={window.location.href}
+            title={getRandomShareText()}
+          >
+            <WhatsappIcon size={64} round />
+          </WhatsappShareButton>
+        </Space>
+      </Modal>
     </div>
   );
 }

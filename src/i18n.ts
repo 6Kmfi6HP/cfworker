@@ -13,6 +13,7 @@ i18n
           apiKeyDescription:
             "You need to provide the email and Global API Key of your CloudFlare account",
           howToGetApiKey: "How to get Global API Key",
+          Towatchvideo: "Watch Video",
           email: "Email",
           emailTooltip: "Email of your CloudFlare account",
           globalAPIKey: "Global API Key",
@@ -36,6 +37,8 @@ i18n
           workerCreationFail:
             "Failed to create Worker node. Please check your input and try again.",
           dataClearedSuccess: "Saved data has been cleared",
+          close: "Close",
+          shareDescription: "Thank you for using our service! Please share this tool with others who might find it helpful.",
           apiKeyInstructions1:
             '1. Log in to your CloudFlare account and go to the <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer">API Tokens</a> page.',
           apiKeyInstructions2: "2. Find the <b>Global API Key</b> and copy it.",
@@ -52,6 +55,13 @@ i18n
           socks5RelayTooltip: "Enable SOCKS5 relay (optional)",
           socks5Proxy: "SOCKS5 Proxy",
           socks5ProxyTooltip: "Optional SOCKS5 proxy address",
+          shareTexts: [
+            "🚀 Discovered an amazing CF Worker node deployment tool! Deploy your own node with ease!",
+            "💫 One-click CF Worker node setup, no more complex configurations! Check out this useful tool~",
+            "⚡️ Want to quickly set up a CF Worker node? This tool makes it easy!",
+            "🔥 CF Worker node setup wizard - even beginners can use it! Try it now~",
+            "✨ Sharing a great tool: CF Worker node one-click deployment, saves time and effort!"
+          ],
         },
       },
       zh: {
@@ -60,6 +70,7 @@ i18n
           apiKeyDescription:
             "需要提供 CloudFlare 账号的 邮箱 和 Global API Key",
           howToGetApiKey: "如何获取 Global API Key",
+          Towatchvideo: "观看视频",
           email: "邮箱",
           emailTooltip: "CloudFlare 账号的邮箱",
           globalAPIKey: "Global API Key",
@@ -82,6 +93,8 @@ i18n
           workerCreationSuccess: "Worker 节点创建成功！",
           workerCreationFail: "创建 Worker 节点失败，请检查您的输入并重试。",
           dataClearedSuccess: "已清除保存的数据",
+          close: "关闭",
+          shareDescription: "感谢使用我们的服务！如果您觉得这个工具有用，请分享给其他可能需要的人。",
           apiKeyInstructions1:
             '1. 登录 CloudFlare 账号，进入 <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener noreferrer">API Tokens</a> 页面。',
           apiKeyInstructions2: "2. 找到 <b>Global API Key</b> 并复制。",
@@ -98,6 +111,13 @@ i18n
           socks5Proxy: "SOCKS5 代理",
           socks5ProxyTooltip:
             "SOCKS5 代理地址 用于代理 workers 访问 cloudflare cdn 网站（可选）",
+          shareTexts: [
+            "🚀 发现了一个超好用的 CF Worker 节点搭建工具！轻松部署你的专属节点，快来试试吧！",
+            "💫 一键搭建 CF Worker 节点，再也不用复杂配置了！推荐给大家这个实用工具~",
+            "⚡️ 想要快速搭建 CF Worker 节点？这个工具帮你轻松搞定！",
+            "🔥 CF Worker 节点搭建神器，小白也能轻松上手！快来体验吧~",
+            "✨ 分享一个超赞的工具：CF Worker 节点一键部署，省时又省力！"
+          ],
         },
       },
     },
