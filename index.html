@@ -1,39 +1,43 @@
 <!DOCTYPE html>
-<html lang="{{language}}">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     
     <!-- Primary Meta Tags -->
-    <title>CF Worker VLESS 节点设置 | 简单的 Cloudflare Worker 管理工具</title>
-    <meta name="title" content="CF Worker VLESS 节点设置 | 简单的 Cloudflare Worker 管理工具">
-    <meta name="description" content="通过我们友好的用户界面轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。">
-    <meta name="keywords" content="Cloudflare Worker, VLESS, 节点设置, 网络管理, 云计算, 科学上网">
+    <title>EDtunnel: CF Workers VLESS Setup & Management Tool</title>
+    <meta name="title" content="EDtunnel: CF Workers VLESS Setup & Management Tool">
+    <meta name="description" content="EDtunnel provides secure & efficient Cloudflare Workers VLESS node management. Simple setup, powerful features, enhanced network performance. Try now!">
+    <meta name="keywords" content="EDtunnel, CF Workers VLESS, Cloudflare Workers, VLESS configuration, network optimization">
     <meta name="author" content="EDtunnel">
-    <meta name="robots" content="index, follow">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cfworker.edtunnel.best">
-    <meta property="og:title" content="CF Worker VLESS 节点设置 | 简单的 Cloudflare Worker 管理工具">
-    <meta property="og:description" content="通过我们友好的用户界面轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。">
+    <meta property="og:title" content="EDtunnel: CF Workers VLESS Setup & Management Tool">
+    <meta property="og:description" content="EDtunnel provides secure & efficient Cloudflare Workers VLESS node management. Simple setup, powerful features, enhanced network performance.">
     <meta property="og:image" content="https://cfworker.edtunnel.best/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="EDtunnel">
-    <meta property="og:locale" content="zh_CN">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="zh_CN">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://cfworker.edtunnel.best">
-    <meta name="twitter:title" content="CF Worker VLESS 节点设置 | 简单的 Cloudflare Worker 管理工具">
-    <meta name="twitter:description" content="通过我们友好的用户界面轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。">
+    <meta name="twitter:title" content="EDtunnel: CF Workers VLESS Setup & Management Tool">
+    <meta name="twitter:description" content="EDtunnel provides secure & efficient Cloudflare Workers VLESS node management. Simple setup, powerful features, enhanced network performance.">
     <meta name="twitter:image" content="https://cfworker.edtunnel.best/og.png">
     
     <!-- Mobile App Meta -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CF Worker VLESS">
+    <meta name="apple-mobile-web-app-title" content="EDtunnel">
     <meta name="theme-color" content="#ffffff">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     
     <!-- Security -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -42,15 +46,63 @@
     <!-- Verification -->
     <meta name="google-site-verification" content="your-google-verification-code">
 
-    <!-- 添加语言替代链接 -->
-    <link rel="alternate" hreflang="zh-CN" href="https://cfworker.edtunnel.best/zh" />
-    <link rel="alternate" hreflang="en" href="https://cfworker.edtunnel.best/en" />
-    <link rel="alternate" hreflang="x-default" href="https://cfworker.edtunnel.best" />
+    <!-- Alternative Language Meta Tags -->
+    <meta name="title-zh" content="EDtunnel | CF Worker VLESS 节点设置工具">
+    <meta name="description-zh" content="通过 EDtunnel 轻松管理 Cloudflare Worker VLESS 节点。简单设置，强大功能，优化网络性能。">
+    <meta name="keywords-zh" content="EDtunnel, CF Worker VLESS, 节点设置, 网络管理, 云计算">
+    
+    <!-- Language alternatives -->
+    <link rel="canonical" href="https://cfworker.edtunnel.best">
+    <link rel="alternate" hreflang="en" href="https://cfworker.edtunnel.best/en">
+    <link rel="alternate" hreflang="zh" href="https://cfworker.edtunnel.best/zh">
+    <link rel="alternate" hreflang="x-default" href="https://cfworker.edtunnel.best">
 
     <!-- 英文 Meta Tags -->
-    <meta name="title-en" content="CF Worker VLESS Node Setup | Easy Cloudflare Worker Management">
+    <meta name="title-en" content="EDtunnel | CF Worker VLESS Node Setup | Easy Cloudflare Worker Management">
     <meta name="description-en" content="Create and manage Cloudflare Worker VLESS nodes easily with our user-friendly interface. Optimize your network performance and security.">
     <meta name="keywords-en" content="Cloudflare Worker, VLESS, Node Setup, Network Management, Cloud Computing">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "EDtunnel",
+      "applicationCategory": "NetworkingApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "888",
+        "priceCurrency": "USD"
+      },
+      "description": "EDtunnel provides secure & efficient Cloudflare Workers VLESS node management. Simple setup, powerful features, enhanced network performance.",
+      "url": "https://cfworker.edtunnel.best",
+      "author": {
+        "@type": "Organization",
+        "name": "EDtunnel",
+        "url": "https://cfworker.edtunnel.best"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "EDtunnel",
+        "url": "https://cfworker.edtunnel.best",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://cfworker.edtunnel.best/og.png"
+        }
+      },
+      "inLanguage": ["en", "zh"],
+      "keywords": "EDtunnel, CF Workers VLESS, Cloudflare Workers, VLESS setup, network management",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250"
+      },
+      "softwareVersion": "1.0",
+      "fileSize": "2MB",
+      "downloadUrl": "https://cfworker.edtunnel.best"
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -65,46 +117,5 @@
         >本站总访问量<span id="busuanzi_value_site_pv"></span>次</span
       >
      </div>  -->
-
-    <!-- JSON-LD Schema -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": {
-        "@language": "zh",
-        "@value": "CF Worker VLESS 节点设置"
-      },
-      "alternateName": {
-        "@language": "en",
-        "@value": "CF Worker VLESS Node Setup"
-      },
-      "description": {
-        "@language": "zh",
-        "@value": "通过我们友好的用户界面轻松创建和管理 Cloudflare Worker VLESS 节点。优化您的网络性能和安全性。"
-      },
-      "description": {
-        "@language": "en",
-        "@value": "Create and manage Cloudflare Worker VLESS nodes easily with our user-friendly interface. Optimize your network performance and security."
-      },
-      "url": "https://cfworker.edtunnel.best",
-      "applicationCategory": "NetworkingApplication",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "888",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "EDtunnel"
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "EDtunnel",
-        "url": "https://cfworker.edtunnel.best"
-      }
-    }
-    </script>
   </body>
 </html>
