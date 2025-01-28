@@ -3,3 +3,5 @@ dist
 dist/assets/index-Bl_OoDvd.js
 dist/assets/index-u-s-t4C1.js
 .env
+dist/index.html
+dist/*
