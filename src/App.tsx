@@ -31,7 +31,18 @@ const getRandomShareText = () => {
 import img from "./getGlobalAPIKey.png";
 
 // Add this array of words for generating worker names
-const words = ['swift', 'breeze', 'cloud', 'spark', 'nova', 'pulse', 'wave', 'flux', 'echo', 'zephyr', 'blaze', 'comet', 'drift', 'ember', 'flare', 'glow', 'haze', 'mist', 'quasar', 'ray', 'shine', 'twilight', 'vortex', 'whirl', 'zenith'];
+const words = [
+  // Fast and dynamic
+  'swift', 'breeze', 'cloud', 'spark', 'nova', 'pulse', 'wave', 'flux', 'echo', 'zephyr', 'blaze', 'comet', 'drift', 'ember', 'flare', 'glow', 'haze', 'mist', 'quasar', 'ray', 'shine', 'twilight', 'vortex', 'whirl', 'zenith',
+  // Tech-related
+  'quantum', 'cyber', 'pixel', 'byte', 'data', 'crypto', 'neural', 'matrix', 'vector', 'binary',
+  // Nature-inspired
+  'aurora', 'storm', 'thunder', 'frost', 'glacier', 'ocean', 'river', 'forest', 'mountain', 'desert',
+  // Space-themed
+  'nebula', 'galaxy', 'cosmos', 'stellar', 'lunar', 'solar', 'astro', 'orbit', 'meteor', 'titan',
+  // Power and energy
+  'dynamo', 'fusion', 'plasma', 'photon', 'atomic', 'energy', 'power', 'force', 'charge', 'surge'
+];
 
 // Add this new import for the Cloudflare logo
 
@@ -57,6 +68,8 @@ function App() {
   );
   const [form] = Form.useForm();
   const [isNodeGenerated, setIsNodeGenerated] = useState(false);
+  const [, setProxyIp] = useState('');
+  const [, setSocks5Proxy] = useState('');
   const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState('');
 
@@ -182,6 +195,22 @@ function App() {
     localStorage.setItem('selectedLanguage', value);
   };
 
+  const handleProxyIpChange = (value: string) => {
+    setProxyIp(value);
+    if (value && !form.getFieldValue('socks5Relay')) {
+      form.setFieldValue('socks5Proxy', '');
+      setSocks5Proxy('');
+    }
+  };
+
+  const handleSocks5ProxyChange = (value: string) => {
+    setSocks5Proxy(value);
+    if (value && !form.getFieldValue('socks5Relay')) {
+      form.setFieldValue('proxyIp', '');
+      setProxyIp('');
+    }
+  };
+
   return (
     <div className={`page ${theme}`}>
       <Helmet>
@@ -242,8 +271,8 @@ function App() {
       </Modal>
 
       <Form
-        layout="vertical"
         form={form}
+        layout="vertical"
         onValuesChange={saveFormData}
       >
         <Form.Item
@@ -294,6 +323,9 @@ function App() {
                     name={"workerName"}
                   >
                     <Input
+                      onChange={(e) => {
+                        form.setFieldsValue({ nodeName: e.target.value });
+                      }}
                       suffix={
                         <Tooltip title={t('workerNameTooltip')}>
                           <Button
@@ -347,24 +379,38 @@ function App() {
                           label={<Tooltip title={t('proxyIpTooltip')}>{t('proxyIp')}</Tooltip>}
                           name="proxyIp"
                         >
-                          <Input placeholder="cdn.xn--b6gac.eu.org:443 or 1.1.1.1:443,2.2.2.2,[2a01:4f8:c2c:123f:64:5:6810:c55a]" />
+                          <Input 
+                            placeholder={!!form.getFieldValue('socks5Proxy') 
+                              ? "Proxy IP is disabled when using Socks5 proxy" 
+                              : "Example: cdn.xn--b6gac.eu.org:443 or 1.1.1.1:7443,2.2.2.2:443,[2a01:4f8:c2c:123f:64:5:6810:c55a]"
+                            }
+                            onChange={(e) => handleProxyIpChange(e.target.value)}
+                            disabled={!!form.getFieldValue('socks5Proxy')}
+                          />
                         </Form.Item>
                       )
                     }
                   </Form.Item>
 
                   <Form.Item
-                    label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
-                    name="customDomain"
-                  >
-                    <Input placeholder="edtunnel.example.com" />
-                  </Form.Item>
-
-                  <Form.Item
                     label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
                     name="socks5Proxy"
                   >
-                    <Input placeholder="user:pass@host:port (Multiple): user1:pass1@host1:port1,user2:pass2@host2:port2" />
+                    <Input
+                      placeholder={!!form.getFieldValue('proxyIp') && !form.getFieldValue('socks5Relay')
+                        ? "Socks5 proxy is disabled when using proxy IP without relay" 
+                        : "Example: user:pass@host:port or user1:pass1@host1:port1,user2:pass2@host2:port2"
+                      }
+                      onChange={(e) => handleSocks5ProxyChange(e.target.value)}
+                      disabled={!!form.getFieldValue('proxyIp') && !form.getFieldValue('socks5Relay')}
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
+                    name="customDomain"
+                  >
+                    <Input placeholder="Example: edtunnel.test.com NOTE: You must owner this domain." />
                   </Form.Item>
                 </>
               ),
