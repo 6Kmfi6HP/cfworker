@@ -72,6 +72,7 @@ function App() {
   const [, setSocks5Proxy] = useState('');
   const { t } = useTranslation();
   const [selectedLanguage, setSelectedLanguage] = useState('');
+  const [socks5RelayEnabled, setSocks5RelayEnabled] = useState(false);
 
   // Load saved form data and language on component mount
   useEffect(() => {
@@ -366,7 +367,7 @@ function App() {
                     name="socks5Relay"
                     valuePropName="checked"
                   >
-                    <Switch />
+                    <Switch onChange={(checked) => setSocks5RelayEnabled(checked)} />
                   </Form.Item>
 
                   <Form.Item
@@ -385,7 +386,7 @@ function App() {
                               : "Example: cdn.xn--b6gac.eu.org:443 or 1.1.1.1:7443,2.2.2.2:443,[2a01:4f8:c2c:123f:64:5:6810:c55a]"
                             }
                             onChange={(e) => handleProxyIpChange(e.target.value)}
-                            disabled={!!form.getFieldValue('socks5Proxy')}
+                            disabled={socks5RelayEnabled ? false : (!!form.getFieldValue('socks5Proxy'))}
                           />
                         </Form.Item>
                       )
@@ -402,7 +403,7 @@ function App() {
                         : "Example: user:pass@host:port or user1:pass1@host1:port1,user2:pass2@host2:port2"
                       }
                       onChange={(e) => handleSocks5ProxyChange(e.target.value)}
-                      disabled={!!form.getFieldValue('proxyIp') && !form.getFieldValue('socks5Relay')}
+                      disabled={form.getFieldValue('socks5Relay') ? false : (!!form.getFieldValue('proxyIp') && !form.getFieldValue('socks5Relay'))}
                     />
                   </Form.Item>
 
