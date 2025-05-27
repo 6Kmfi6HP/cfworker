@@ -8,10 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler pages deploy"
+    "deploy": "npm run build && wrangler pages deploy",
+    "setup": "node setup-env.cjs"
   },
   "dependencies": {
     "@types/react-helmet": "^6.1.11",
+    "@types/react-window": "^1.8.8",
     "antd": "^5.19.0",
     "axios": "^1.7.2",
     "i18next": "^23.16.0",
@@ -22,6 +24,8 @@
     "react-helmet": "^6.1.0",
     "react-i18next": "^15.0.3",
     "react-share": "^5.1.2",
+    "react-window": "^1.8.11",
+    "react-window-infinite-loader": "^1.0.10",
     "uuid": "^10.0.0",
     "wrangler": "^3.80.5"
   },

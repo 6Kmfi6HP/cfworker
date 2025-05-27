@@ -1,13 +1,84 @@
-# React + TypeScript + Vite
+# Cloudflare Worker Management Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript + Vite application for managing Cloudflare Workers with bulk deployment capabilities.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🚀 Bulk worker deployment across multiple Cloudflare accounts
+- 🔐 Secure account management with API key isolation
+- 🌐 Multi-language support (i18n)
+- 📊 Real-time deployment progress tracking
+- 🎨 Modern UI with Ant Design components
 
-## Expanding the ESLint configuration
+## Quick Start
+
+### 1. Setup Environment
+
+First, create your environment configuration:
+
+```bash
+npm run setup
+# or
+pnpm setup
+```
+
+This will create a `.env` file with default settings. You can modify the values as needed.
+
+### 2. Install Dependencies
+
+```bash
+npm install
+# or
+pnpm install
+```
+
+### 3. Start Development Server
+
+```bash
+npm run dev
+# or
+pnpm dev
+```
+
+The development server includes a CORS proxy that routes `/api/*` requests to the backend API, solving cross-origin issues.
+
+## CORS Solution
+
+This project solves CORS issues by:
+
+1. **Development Proxy**: Vite dev server proxies `/api/*` requests to `https://cfworkerback-pages5.pages.dev`
+2. **Environment-based URLs**: Uses proxy paths in development, direct URLs in production
+3. **Automatic Header Injection**: API client automatically adds required authentication headers
+
+### Configuration
+
+- **Development**: API calls go to `/api/createWorker` (proxied)
+- **Production**: API calls go to `https://cfworkerback-pages5.pages.dev/createWorker` (direct)
+
+## Build and Deploy
+
+```bash
+npm run build
+npm run deploy
+```
+
+## Project Structure
+
+```
+src/
+├── components/          # React components
+├── contexts/           # React contexts
+├── services/           # API services
+├── types/              # TypeScript types
+└── utils/              # Utility functions
+```
+
+## Environment Variables
+
+- `VITE_API_ENDPOINT`: Backend API endpoint
+- `VITE_MAX_PROXY_IPS`: Maximum number of proxy IPs
+
+## ESLint Configuration
 
 If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
 

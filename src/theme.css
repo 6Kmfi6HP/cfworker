@@ -297,3 +297,91 @@ body.dark {
 .ant-form-item-label > label {
   color: var(--text-color) !important;
 }
+
+/* 调整输入框附加组件的样式 */
+.ant-input-group-addon {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-color);
+}
+
+body.dark .ant-input-group-addon {
+  background-color: #141414;
+  border-color: #333;
+}
+
+body.dark .ant-input-group-addon .ant-btn {
+  background-color: #141414;
+  border-color: transparent;
+  color: #f0f0f0;
+}
+
+body.dark .ant-input-group-addon .ant-btn:hover {
+  color: #1890ff;
+}
+
+/* 调整模态框样式 */
+.ant-modal-content, .ant-modal-header {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.ant-modal-title {
+  color: var(--header-color);
+}
+
+/* 深色模式下统一模态框样式 */
+body.dark .ant-modal-content {
+  background-color: #141414 !important;
+  /* border: 1px solid #333 !important; */
+}
+
+body.dark .ant-modal-header {
+  background-color: #141414 !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+body.dark .ant-modal-title {
+  color: #f0f0f0 !important;
+}
+
+body.dark .ant-modal-body {
+  background-color: #141414 !important;
+  color: #f0f0f0 !important;
+}
+
+body.dark .ant-modal-footer {
+  background-color: #141414 !important;
+  border-top: 1px solid #333 !important;
+}
+
+body.dark .ant-modal-close {
+  color: #999;
+}
+
+body.dark .ant-modal-close:hover {
+  color: #fff;
+}
+
+/* 深色模式下模态框按钮样式 */
+body.dark .ant-modal-footer .ant-btn {
+  background-color: #1a1a1a;
+  border-color: #333;
+  color: #f0f0f0;
+}
+
+body.dark .ant-modal-footer .ant-btn:hover {
+  background-color: #252525;
+  border-color: #444;
+}
+
+body.dark .ant-modal-footer .ant-btn-primary {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: #fff;
+}
+
+body.dark .ant-modal-footer .ant-btn-primary:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
