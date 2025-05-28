@@ -22,10 +22,35 @@ export async function onRequest(context: {
   const finalUrl = searchParams ? `${targetUrl}?${searchParams}` : targetUrl;
   
   try {
-    // Create a new request with the same method, headers, and body
+    // Get client IP from Cloudflare headers
+    const clientIP = request.headers.get('CF-Connecting-IP') || 
+                     request.headers.get('X-Forwarded-For') || 
+                     request.headers.get('X-Real-IP') || 
+                     'unknown';
+    
+    // Create headers for the proxy request
+    const proxyHeaders = new Headers(request.headers);
+    
+    // Add/update IP forwarding headers
+    proxyHeaders.set('X-Forwarded-For', clientIP);
+    proxyHeaders.set('X-Real-IP', clientIP);
+    proxyHeaders.set('X-Client-IP', clientIP);
+    
+    // Preserve original CF headers if they exist
+    if (request.headers.get('CF-Connecting-IP')) {
+      proxyHeaders.set('CF-Connecting-IP', request.headers.get('CF-Connecting-IP')!);
+    }
+    if (request.headers.get('CF-Ray')) {
+      proxyHeaders.set('CF-Ray', request.headers.get('CF-Ray')!);
+    }
+    if (request.headers.get('CF-IPCountry')) {
+      proxyHeaders.set('CF-IPCountry', request.headers.get('CF-IPCountry')!);
+    }
+    
+    // Create a new request with the same method, updated headers, and body
     const proxyRequest = new Request(finalUrl, {
       method: request.method,
-      headers: request.headers,
+      headers: proxyHeaders,
       body: request.method !== 'GET' && request.method !== 'HEAD' ? request.body : null,
     });
     
