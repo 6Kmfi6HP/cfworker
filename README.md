@@ -44,16 +44,29 @@ The development server includes a CORS proxy that routes `/api/*` requests to th
 
 ## CORS Solution
 
-This project solves CORS issues by:
+This project uses **Cloudflare Pages Functions** to solve CORS issues in both development and production:
 
-1. **Development Proxy**: Vite dev server proxies `/api/*` requests to `https://cfworkerback-pages5.pages.dev`
-2. **Environment-based URLs**: Uses proxy paths in development, direct URLs in production
-3. **Automatic Header Injection**: API client automatically adds required authentication headers
+1. **Development Proxy**: Vite dev server proxies `/api/*` requests to the backend API
+2. **Production Proxy**: Cloudflare Pages Functions handle `/api/*` requests as a reverse proxy
+3. **Unified API Paths**: Both environments use the same `/api/*` paths for consistency
+4. **Automatic CORS Headers**: Pages Functions automatically add required CORS headers
+
+### How It Works
+
+```
+Frontend → /api/* → Pages Function → Backend API
+```
+
+- **Development**: Vite proxy handles the routing
+- **Production**: `functions/api/[...path].ts` handles the routing
 
 ### Configuration
 
-- **Development**: API calls go to `/api/createWorker` (proxied)
-- **Production**: API calls go to `https://cfworkerback-pages5.pages.dev/createWorker` (direct)
+- **All Environments**: API calls go to `/api/createWorker` (proxied)
+- **Backend Target**: Configurable via `API_TARGET` environment variable
+- **Default Target**: `https://cfworkerback-pages5.pages.dev`
+
+For detailed information, see [CORS_SOLUTION.md](./CORS_SOLUTION.md).
 
 ## Build and Deploy
 

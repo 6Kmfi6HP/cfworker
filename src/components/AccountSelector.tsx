@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Select, Button, Tag, Tooltip, Avatar } from 'antd';
-import { UserOutlined, PlusOutlined, SettingOutlined } from '@ant-design/icons';
+import { PlusOutlined, SettingOutlined } from '@ant-design/icons';
 import { useAccount } from '../contexts/AccountContext';
 import { useTranslation } from 'react-i18next';
 
@@ -37,24 +37,69 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     .map(account => ({
       value: account.id,
       label: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar size="small" style={{ backgroundColor: '#1890ff' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px',
+          // padding: '4px 0',
+          maxWidth: '100%',
+          overflow: 'hidden'
+        }}>
+          <Avatar size="small" style={{ backgroundColor: '#1890ff', flexShrink: 0 }}>
             {getAccountAvatar(account)}
           </Avatar>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500 }}>{getAccountDisplayName(account)}</div>
-            <div style={{ fontSize: '12px', color: '#8c8c8c' }}>{account.email}</div>
+          <div style={{ 
+            flex: 1, 
+            minWidth: 0,
+            // maxWidth: 'calc(100% - 120px)' // Reserve space for avatar and tags
+          }}>
+            <div style={{ 
+              fontWeight: 500, 
+              fontSize: '14px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '100%'
+            }}>
+              {getAccountDisplayName(account)}({account.email})
+            </div>
+            {/* <div style={{ 
+              fontSize: '12px', 
+              color: '#8c8c8c',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: '100%'
+            }}>
+              {account.email}
+            </div> */}
           </div>
           {account.tags && account.tags.length > 0 && (
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {account.tags.slice(0, 2).map((tag: string) => (
-                <Tag key={tag} color="blue" style={{ fontSize: '12px' }}>
+            <div style={{ 
+              display: 'flex', 
+              gap: '4px', 
+              flexShrink: 0,
+              // maxWidth: '80px',
+              overflow: 'hidden'
+            }}>
+              {account.tags.slice(0, 1).map((tag: string) => (
+                <Tag key={tag} color="blue" style={{ 
+                  fontSize: '11px', 
+                  margin: 0,
+                  // maxWidth: '60px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {tag}
                 </Tag>
               ))}
-              {account.tags.length > 2 && (
-                <Tag color="default" style={{ fontSize: '12px' }}>
-                  +{account.tags.length - 2}
+              {account.tags.length > 1 && (
+                <Tag color="default" style={{ 
+                  fontSize: '11px', 
+                  margin: 0,
+                  minWidth: 'auto'
+                }}>
+                  +{account.tags.length - 1}
                 </Tag>
               )}
             </div>
@@ -67,17 +112,29 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     <div style={{ 
       display: 'flex', 
       alignItems: 'center', 
-      gap: '12px',
-      padding: '8px 16px',
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '8px',
-      backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
+      gap: '16px',
+      padding: '12px 20px',
+      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: '12px',
+      backdropFilter: 'blur(12px)',
+      border: '1px solid rgba(255, 255, 255, 0.15)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      minHeight: '56px',
+      maxWidth: '100%',
+      overflow: 'hidden'
     }}>
-      <UserOutlined style={{ color: '#1890ff' }} />
+      {/* <UserOutlined style={{ 
+        color: '#1890ff', 
+        fontSize: '16px',
+        flexShrink: 0
+      }} /> */}
       
       <Select
-        style={{ minWidth: '200px', flex: 1 }}
+        style={{ 
+          // minWidth: '200px', 
+          flex: 1,
+          maxWidth: '100%'
+        }}
         placeholder={t('selectAccount', 'Select Account')}
         value={currentAccount?.id}
         onChange={handleAccountChange}
@@ -86,14 +143,16 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
         onDropdownVisibleChange={setDropdownOpen}
         options={selectOptions}
         optionRender={(option) => option.label}
+        size="large"
         dropdownRender={(menu) => (
           <div>
             {menu}
             <div style={{ 
               borderTop: '1px solid #f0f0f0', 
-              padding: '8px',
+              padding: '12px',
               display: 'flex',
-              gap: '8px'
+              gap: '8px',
+              backgroundColor: '#fafafa'
             }}>
               <Button
                 type="text"
@@ -102,7 +161,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   setDropdownOpen(false);
                   onAddAccount?.();
                 }}
-                style={{ flex: 1 }}
+                style={{ 
+                  flex: 1,
+                  height: '36px',
+                  borderRadius: '6px'
+                }}
               >
                 {t('addAccount', 'Add Account')}
               </Button>
@@ -113,7 +176,11 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                   setDropdownOpen(false);
                   onManageAccounts?.();
                 }}
-                style={{ flex: 1 }}
+                style={{ 
+                  flex: 1,
+                  height: '36px',
+                  borderRadius: '6px'
+                }}
               >
                 {t('manage', 'Manage')}
               </Button>
@@ -123,25 +190,85 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       />
 
       {currentAccount && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar size="small" style={{ backgroundColor: '#52c41a' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          flexShrink: 1,
+          minWidth: 0,
+          maxWidth: '200px',
+          overflow: 'hidden'
+        }}>
+          {/* <Avatar 
+            size="small" 
+            style={{ 
+              backgroundColor: '#52c41a',
+              fontWeight: 600,
+              flexShrink: 0,
+              width: '28px',
+              height: '28px'
+            }}
+          >
             {getAccountAvatar(currentAccount)}
-          </Avatar>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '14px', fontWeight: 500, color: '#fff' }}>
+          </Avatar> */}
+          {/* <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'flex-start',
+            minWidth: 0,
+            flex: 1,
+            overflow: 'hidden'
+          }}>
+            <div style={{ 
+              fontSize: '13px', 
+              fontWeight: 600, 
+              color: '#fff',
+              lineHeight: '1.1',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
+              maxWidth: '120px'
+            }}>
               {getAccountDisplayName(currentAccount)}
-            </span>
-            <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)' }}>
+            </div>
+            <div style={{ 
+              fontSize: '11px', 
+              color: 'rgba(255, 255, 255, 0.6)',
+              lineHeight: '1.1',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
+              maxWidth: '120px'
+            }}>
               {currentAccount.email}
-            </span>
-          </div>
+            </div>
+          </div> */}
           {currentAccount.tags && currentAccount.tags.length > 0 && (
-                         <Tooltip title={currentAccount.tags.join(', ')}>
-               <Tag color="green" style={{ fontSize: '12px' }}>
-                 {currentAccount.tags[0]}
-                 {currentAccount.tags.length > 1 && ` +${currentAccount.tags.length - 1}`}
-               </Tag>
-             </Tooltip>
+            <Tooltip title={currentAccount.tags.join(', ')}>
+              <Tag 
+                color="green" 
+                style={{ 
+                  fontSize: '10px',
+                  margin: 0,
+                  borderRadius: '3px',
+                  fontWeight: 500,
+                  flexShrink: 0,
+                  maxWidth: '50px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  padding: '1px 4px',
+                  lineHeight: '1.2'
+                }}
+              >
+                {currentAccount.tags[0].length > 4 
+                  ? currentAccount.tags[0].substring(0, 3) + '...'
+                  : currentAccount.tags[0]
+                }
+                {currentAccount.tags.length > 1 && `+${currentAccount.tags.length - 1}`}
+              </Tag>
+            </Tooltip>
           )}
         </div>
       )}
@@ -149,8 +276,14 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       {!currentAccount && accounts.length > 0 && (
         <Button
           type="primary"
-          size="small"
+          size="middle"
           onClick={() => setDropdownOpen(true)}
+          style={{
+            borderRadius: '8px',
+            fontWeight: 500,
+            height: '36px',
+            flexShrink: 0
+          }}
         >
           {t('selectAccount', 'Select Account')}
         </Button>
@@ -159,9 +292,15 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       {accounts.length === 0 && (
         <Button
           type="primary"
-          size="small"
+          size="middle"
           icon={<PlusOutlined />}
           onClick={onAddAccount}
+          style={{
+            borderRadius: '8px',
+            fontWeight: 500,
+            height: '36px',
+            flexShrink: 0
+          }}
         >
           {t('addFirstAccount', 'Add First Account')}
         </Button>

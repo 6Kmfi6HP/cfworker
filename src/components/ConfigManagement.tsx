@@ -5,6 +5,7 @@ import {
   Space,
   Upload,
   message,
+  notification,
   Typography,
   Divider,
   Alert,
@@ -80,7 +81,12 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      message.success(t('configExportSuccess', 'Configuration exported successfully'));
+      notification.success({
+        message: t('configExportSuccess', 'Configuration exported successfully'),
+        description: t('configExportSuccessDesc', 'Configuration file has been downloaded to your device.'),
+        placement: 'topRight',
+        duration: 3,
+      });
     } catch (error) {
       console.error('Export failed:', error);
       message.error(t('configExportFailed', 'Failed to export configuration'));
@@ -100,7 +106,12 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
         }
 
         setImportPreview(configData);
-        message.success(t('configFileLoaded', 'Configuration file loaded successfully'));
+        notification.success({
+          message: t('configFileLoaded', 'Configuration file loaded successfully'),
+          description: t('configFileLoadedDesc', 'Configuration file has been parsed and is ready for import.'),
+          placement: 'topRight',
+          duration: 3,
+        });
       } catch (error) {
         console.error('Failed to parse config file:', error);
         message.error(t('configFileInvalid', 'Invalid configuration file'));
@@ -156,7 +167,12 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
         }
       }
 
-      message.success(t('configImportSuccess', 'Configuration imported successfully'));
+      notification.success({
+        message: t('configImportSuccess', 'Configuration imported successfully'),
+        description: t('configImportSuccessDesc', 'All configuration data has been imported successfully.'),
+        placement: 'topRight',
+        duration: 4,
+      });
       setImportPreview(null);
       onClose();
       
@@ -286,19 +302,36 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
                 style={{ margin: '16px 0' }}
               />
               
-              <Space>
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                justifyContent: 'flex-start'
+              }}>
                 <Button
                   type="primary"
                   icon={<UploadOutlined />}
                   onClick={handleImport}
                   loading={importing}
+                  style={{
+                    flex: '1 1 auto',
+                    minWidth: '120px',
+                    maxWidth: '160px'
+                  }}
                 >
                   {t('confirmImport', 'Confirm Import')}
                 </Button>
-                <Button onClick={() => setImportPreview(null)}>
+                <Button 
+                  onClick={() => setImportPreview(null)}
+                  style={{
+                    flex: '1 1 auto',
+                    minWidth: '80px',
+                    maxWidth: '120px'
+                  }}
+                >
                   {t('cancel', 'Cancel')}
                 </Button>
-              </Space>
+              </div>
             </Card>
           )}
         </Card>

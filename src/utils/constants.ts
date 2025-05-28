@@ -1,8 +1,8 @@
 // API endpoints
-const isDevelopment = import.meta.env.DEV;
-export const API_ENDPOINT = isDevelopment 
-  ? '/api/createWorker'
-  : import.meta.env.VITE_API_ENDPOINT || "https://cfworkerback-pages5.pages.dev/createWorker";
+// Always use the proxy path for both development and production
+// In development: Vite dev server proxies /api/* to the backend
+// In production: Cloudflare Pages Functions handle /api/* requests
+export const API_ENDPOINT = '/api/createWorker';
 export const STATS_API_ENDPOINT = "https://bestip.06151953.xyz/api/stats";
 
 // Configuration

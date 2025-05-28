@@ -3,8 +3,9 @@ compatibility_date = "2024-10-16"
 pages_build_output_dir = "./dist"
 compatibility_flags = [ "nodejs_compat" ]
 
-# [vars]
-# MY_VAR = "my-variable"
+[vars]
+# API target for the proxy function
+API_TARGET = "https://cfworkerback-pages5.pages.dev"
 
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"

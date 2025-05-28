@@ -12,7 +12,6 @@ import NodeOutput from './components/NodeOutput';
 import AccountManagement from './components/AccountManagement';
 import BulkWorkerDeployment from './components/BulkWorkerDeployment';
 import ConfigManagement from './components/ConfigManagement';
-import GlobalShortcuts from './components/GlobalShortcuts';
 import Footer from './Footer';
 
 import './theme.css';
@@ -61,14 +60,7 @@ function AppContent() {
     localStorage.setItem('selectedLanguage', value);
   };
 
-  const handleToggleTheme = () => {
-    // This will be handled by the theme context
-  };
 
-  const handleToggleLanguage = () => {
-    const newLanguage = selectedLanguage === 'en' ? 'zh' : 'en';
-    handleLanguageChange(newLanguage);
-  };
 
   const handleWorkerCreated = (nodeData: string, urlData: string) => {
     setNode(nodeData);
@@ -151,13 +143,13 @@ function AppContent() {
       />
 
       {/* Global Shortcuts */}
-      <GlobalShortcuts
+      {/* <GlobalShortcuts
         onOpenAccountManagement={() => setShowAccountManagement(true)}
         onOpenBulkDeployment={() => setShowBulkDeployment(true)}
         onOpenConfigManagement={() => setShowConfigManagement(true)}
         onToggleTheme={handleToggleTheme}
         onToggleLanguage={handleToggleLanguage}
-      />
+      /> */}
     </div>
   );
 }

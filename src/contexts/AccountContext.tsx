@@ -3,7 +3,7 @@ import { AccountCredentials, AccountFormData } from '../types/account';
 import { encryptedStorage } from '../services/storage';
 import { apiClient } from '../services/apiClient';
 import { v4 as uuidv4 } from 'uuid';
-import { message } from 'antd';
+import { message, notification } from 'antd';
 
 interface AccountContextType {
   accounts: AccountCredentials[];
@@ -115,7 +115,12 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccount(newAccount);
       }
       
-      message.success('Account added successfully');
+      notification.success({
+        message: 'Account added successfully',
+        description: 'New account has been added and encrypted securely.',
+        placement: 'topRight',
+        duration: 3,
+      });
     } catch (error) {
       console.error('Failed to add account:', error);
       message.error('Failed to add account');
@@ -144,7 +149,12 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccountState(updatedAccount);
       }
       
-      message.success('Account updated successfully');
+      notification.success({
+        message: 'Account updated successfully',
+        description: 'Account information has been updated and saved securely.',
+        placement: 'topRight',
+        duration: 3,
+      });
     } catch (error) {
       console.error('Failed to update account:', error);
       message.error('Failed to update account');
@@ -162,7 +172,12 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccount(null);
       }
       
-      message.success('Account deleted successfully');
+      notification.success({
+        message: 'Account deleted successfully',
+        description: 'Account has been permanently removed from storage.',
+        placement: 'topRight',
+        duration: 3,
+      });
     } catch (error) {
       console.error('Failed to delete account:', error);
       message.error('Failed to delete account');

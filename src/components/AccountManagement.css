@@ -1,0 +1,603 @@
+/* 账号管理模态框样式 */
+.account-management-modal .ant-modal-body {
+  padding: 24px;
+}
+
+.account-management-header {
+  margin-bottom: 8px;
+}
+
+.account-management-header .ant-typography {
+  margin-bottom: 4px !important;
+}
+
+/* 工具栏样式 */
+.account-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  flex-shrink: 0;
+}
+
+.toolbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.toolbar-right {
+  flex-shrink: 0;
+}
+
+/* 统计信息样式 */
+.account-stats {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 8px;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1890ff;
+  margin-top: 4px;
+}
+
+/* 账号卡片样式 */
+.account-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  overflow: hidden;
+}
+
+.account-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.account-card.current-account {
+  border-color: #52c41a;
+  background: linear-gradient(135deg, #f6ffed 0%, #f0f9ff 100%);
+}
+
+.account-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.account-avatar-section {
+  flex-shrink: 0;
+}
+
+.account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.account-email,
+.account-id {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.account-meta {
+  margin-top: 8px;
+}
+
+.account-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-created {
+  display: flex;
+  align-items: center;
+}
+
+.account-notes {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+  border-left: 3px solid #1890ff;
+}
+
+/* 收藏按钮样式 */
+.favorite-btn {
+  color: #d9d9d9 !important;
+  transition: color 0.3s ease;
+}
+
+.favorite-btn:hover {
+  color: #faad14 !important;
+}
+
+.favorite-btn.active {
+  color: #faad14 !important;
+}
+
+/* 列表视图样式 */
+.account-list-item {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.account-list-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: #1890ff;
+}
+
+.account-list-item.current-account {
+  border-color: #52c41a;
+  background: linear-gradient(90deg, #f6ffed 0%, #f0f9ff 100%);
+}
+
+.account-list-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.account-list-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.account-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-list-info > div:first-child {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.account-list-right {
+  flex-shrink: 0;
+}
+
+/* 加载状态样式 */
+.loading-container {
+  padding: 20px 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .account-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .toolbar-left,
+  .toolbar-center,
+  .toolbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .toolbar-center {
+    order: -1;
+  }
+}
+
+/* 移动端模态框优化 */
+@media (max-width: 768px) {
+  .account-management-modal {
+    margin: 0 !important;
+    max-width: 100% !important;
+    height: 100vh !important;
+  }
+  
+  .account-management-modal .ant-modal-content {
+    height: 100vh;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .account-management-modal .ant-modal-header {
+    flex-shrink: 0;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .account-management-modal .ant-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  
+  .account-management-header {
+    margin-bottom: 12px;
+  }
+  
+  .account-management-header .ant-typography h3 {
+    font-size: 18px !important;
+    margin-bottom: 4px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .account-management-modal .ant-modal-body {
+    padding: 12px;
+  }
+  
+  .account-toolbar {
+    gap: 12px;
+    padding: 0 4px;
+  }
+  
+  .toolbar-center .ant-input-search {
+    width: 100% !important;
+  }
+  
+  .toolbar-right .ant-space {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .toolbar-right .ant-space > * {
+    flex: 1;
+    min-width: 80px;
+  }
+  
+  .account-stats {
+    padding: 16px;
+  }
+  
+  .stat-item {
+    padding: 4px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+  
+  .account-card {
+    margin-bottom: 12px;
+  }
+  
+  .account-card-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  .account-info {
+    width: 100%;
+  }
+  
+  .account-name {
+    justify-content: center;
+  }
+  
+  .account-list-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .account-list-left {
+    justify-content: center;
+  }
+  
+  .account-list-right {
+    align-self: stretch;
+  }
+  
+  .account-list-right .ant-space {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
+
+@media (max-width: 480px) {
+  .account-stats {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .account-stats .ant-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .account-stats .ant-col {
+    width: 100% !important;
+    margin-bottom: 0;
+  }
+  
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 12px 8px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    margin-bottom: 0;
+    min-height: 60px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .stat-number {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 4px;
+    margin-bottom: 0;
+  }
+  
+  .account-card .ant-card-actions {
+    padding: 8px 12px;
+  }
+  
+  .account-card .ant-card-actions > li {
+    margin: 0 4px;
+  }
+  
+  .toolbar-right .ant-btn-group {
+    width: 100%;
+  }
+  
+  .toolbar-right .ant-btn-group .ant-btn {
+    flex: 1;
+  }
+  
+  /* 移动端按钮优化 */
+  .toolbar-left .ant-btn {
+    width: 100%;
+    height: 44px;
+    font-size: 16px;
+    border-radius: 8px;
+    font-weight: 500;
+  }
+  
+  .toolbar-right .ant-select {
+    height: 40px;
+  }
+  
+  .toolbar-right .ant-select .ant-select-selector {
+    height: 40px !important;
+    border-radius: 8px;
+  }
+  
+  .toolbar-right .ant-btn-group .ant-btn {
+    height: 40px;
+    border-radius: 0;
+  }
+  
+  .toolbar-right .ant-btn-group .ant-btn:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  
+  .toolbar-right .ant-btn-group .ant-btn:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+}
+
+/* 深色模式适配 */
+body.dark .account-stats {
+  background: linear-gradient(135deg, #1f1f1f 0%, #2d2d2d 100%);
+}
+
+body.dark .stat-number {
+  color: #40a9ff;
+}
+
+body.dark .account-card.current-account {
+  background: linear-gradient(135deg, #162312 0%, #0f1419 100%);
+}
+
+body.dark .account-list-item.current-account {
+  background: linear-gradient(90deg, #162312 0%, #0f1419 100%);
+}
+
+body.dark .account-notes {
+  background-color: rgba(255, 255, 255, 0.04);
+  border-left-color: #40a9ff;
+}
+
+body.dark .stat-item {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* 深色模式移动端优化 */
+@media (max-width: 480px) {
+  body.dark .stat-item {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.account-card,
+.account-list-item {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+/* 滚动条样式 */
+.account-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.account-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.account-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.account-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+body.dark .account-content::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+body.dark .account-content::-webkit-scrollbar-thumb {
+  background: #4d4d4d;
+}
+
+body.dark .account-content::-webkit-scrollbar-thumb:hover {
+  background: #5d5d5d;
+}
+
+/* 表单样式优化 */
+.ant-drawer .ant-form-item {
+  margin-bottom: 20px;
+}
+
+.ant-drawer .ant-form-item-label {
+  padding-bottom: 4px;
+}
+
+.ant-drawer .ant-input,
+.ant-drawer .ant-input-password,
+.ant-drawer .ant-select-selector,
+.ant-drawer .ant-input-affix-wrapper {
+  border-radius: 8px;
+}
+
+/* 空状态样式 */
+.ant-empty {
+  padding: 40px 20px;
+}
+
+.ant-empty-description {
+  color: #8c8c8c;
+  font-size: 14px;
+}
+
+/* 移动端空状态优化 */
+@media (max-width: 768px) {
+  .ant-empty {
+    padding: 30px 16px;
+  }
+  
+  .ant-empty-description {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  
+  .ant-empty .ant-btn {
+    width: 100%;
+    max-width: 200px;
+    height: 44px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+}
+
+/* 徽章样式 */
+.ant-badge-dot {
+  box-shadow: 0 0 0 2px #fff;
+}
+
+body.dark .ant-badge-dot {
+  box-shadow: 0 0 0 2px #1f1f1f;
+}
+
+/* 下拉菜单样式 */
+.ant-dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.ant-dropdown-menu-item {
+  border-radius: 4px;
+  margin: 2px 4px;
+}
+
+/* 工具提示样式 */
+.ant-tooltip-inner {
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+/* 确认弹窗样式 */
+.ant-popconfirm-inner {
+  border-radius: 8px;
+}
+
+/* 标签样式优化 */
+.ant-tag {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.2;
+  border: none;
+}
+
+/* 按钮组样式 */
+.ant-btn-group .ant-btn {
+  border-radius: 0;
+}
+
+.ant-btn-group .ant-btn:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.ant-btn-group .ant-btn:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+} 

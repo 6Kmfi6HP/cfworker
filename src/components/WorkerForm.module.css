@@ -1,0 +1,227 @@
+/* WorkerForm 响应式样式 */
+
+.workerFormContainer {
+  width: 100%;
+}
+
+.buttonContainer {
+  width: 100%;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mainButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.mainButton {
+  flex: 1 1 auto;
+  min-width: 140px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bulkButton {
+  flex: 1 1 auto;
+  min-width: 120px;
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.configButton {
+  flex: 1 1 auto;
+  min-width: 100px;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.clearButtonContainer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.clearButton {
+  min-width: 120px;
+}
+
+/* 平板设备 (768px - 1024px) */
+@media (max-width: 1024px) {
+  .mainButtons {
+    justify-content: center;
+  }
+  
+  .mainButton,
+  .bulkButton,
+  .configButton {
+    min-width: 110px;
+    max-width: 150px;
+  }
+}
+
+/* 小屏幕平板 (481px - 768px) */
+@media (max-width: 768px) {
+  .mainButtons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .mainButton,
+  .bulkButton,
+  .configButton {
+    width: 100%;
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .clearButtonContainer {
+    justify-content: center;
+  }
+  
+  .clearButton {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+/* 超小屏幕手机 (480px 以下) */
+@media (max-width: 480px) {
+  .buttonContainer {
+    gap: 8px;
+  }
+  
+  .mainButtons {
+    gap: 6px;
+  }
+  
+  .mainButton,
+  .bulkButton,
+  .configButton,
+  .clearButton {
+    font-size: 13px;
+    height: 32px;
+    padding: 0 8px;
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mainButtons {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .mainButton,
+  .bulkButton,
+  .configButton {
+    flex: 1 1 calc(50% - 4px);
+    max-width: calc(50% - 4px);
+  }
+}
+
+/* 超小屏幕横屏 */
+@media (max-width: 480px) and (orientation: landscape) {
+  .mainButton,
+  .bulkButton,
+  .configButton {
+    flex: 1 1 calc(33.333% - 6px);
+    max-width: calc(33.333% - 6px);
+    min-width: 80px;
+  }
+}
+
+/* 模态框响应式样式 */
+.countryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px 5px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #f0f0f0;
+}
+
+.countryGridExpanded {
+  max-height: 400px;
+}
+
+.countryButton {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 38px;
+  font-size: clamp(12px, 3vw, 14px);
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  color: #333333;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.02);
+  transition: all 0.3s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.countryButtonSpan {
+  font-size: clamp(13px, 3vw, 16px);
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 小屏幕模态框优化 */
+@media (max-width: 768px) {
+  .countryGrid {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .countryButton {
+    height: 36px;
+    font-size: 12px;
+    padding: 0 4px;
+  }
+  
+  .countryButtonSpan {
+    font-size: 13px;
+  }
+}
+
+/* 超小屏幕模态框 */
+@media (max-width: 480px) {
+  .countryGrid {
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 6px;
+    padding: 6px;
+    max-height: 200px;
+  }
+  
+  .countryGridExpanded {
+    max-height: 300px;
+  }
+  
+  .countryButton {
+    height: 32px;
+    font-size: 11px;
+    padding: 0 2px;
+  }
+  
+  .countryButtonSpan {
+    font-size: 12px;
+  }
+} 

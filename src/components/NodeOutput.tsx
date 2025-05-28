@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Space, message, Modal } from 'antd';
+import { Button, Space, Modal, notification } from 'antd';
 import { 
   ThunderboltOutlined, 
   RocketOutlined, 
@@ -151,7 +151,12 @@ const NodeOutput: React.FC<NodeOutputProps> = ({
             text={node}
             onCopy={() => {
               if (isNodeGenerated) {
-                message.success(t('copiedSuccess'));
+                notification.success({
+                  message: t('copiedSuccess'),
+                  description: t('copiedSuccessDesc', 'Node configuration has been copied to clipboard.'),
+                  placement: 'topRight',
+                  duration: 2,
+                });
               }
             }}
           >

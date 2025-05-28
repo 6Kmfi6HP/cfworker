@@ -199,6 +199,7 @@ body {
 
   .page {
     padding: 16px; // Reduce padding on mobile
+    max-width: 100%;
   }
 
   .node-output {
@@ -220,17 +221,162 @@ body {
       gap: 12px;
     }
   }
-}
 
-@media (min-width: 769px) and (max-width: 1200px) {
-  html {
-    font-size: 15px;
+  // WorkerForm 响应式样式
+  .ant-form {
+    .ant-btn {
+      font-size: 14px;
+      height: 36px;
+      padding: 0 12px;
+    }
+  }
+
+  // 折叠面板在移动端的优化
+  .ant-collapse {
+    .ant-collapse-header {
+      padding: 12px 16px;
+      font-size: 14px;
+    }
+    
+    .ant-collapse-content-box {
+      padding: 16px;
+    }
+  }
+
+  // 输入框在移动端的优化
+  .ant-input, .ant-input-affix-wrapper {
+    font-size: 14px;
+    height: 36px;
+  }
+
+  // 模态框在移动端的优化
+  .ant-modal {
+    margin: 0;
+    max-width: 100vw;
+    
+    .ant-modal-content {
+      margin: 0;
+      border-radius: 0;
+    }
+    
+    .ant-modal-body {
+      padding: 16px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
   }
 }
 
+// 小屏幕手机 (480px 以下)
+@media (max-width: 480px) {
+  .page {
+    padding: 12px;
+  }
+
+  .header {
+    padding: 16px 0;
+    margin-bottom: 24px;
+    
+    h1 {
+      font-size: 1.8rem;
+    }
+  }
+
+  .ant-form-item {
+    margin-bottom: 16px;
+  }
+
+  .ant-btn {
+    height: 32px;
+    font-size: 13px;
+    padding: 0 8px;
+  }
+
+  // 确保按钮在超小屏幕上垂直堆叠
+  .ant-form + div > div:first-child {
+    flex-direction: column !important;
+    
+    .ant-btn {
+      width: 100% !important;
+      max-width: none !important;
+      margin-bottom: 8px;
+    }
+  }
+
+  // 通用按钮容器响应式样式
+  div[style*="display: flex"][style*="flex-wrap: wrap"] {
+    flex-direction: column !important;
+    
+    .ant-btn {
+      width: 100% !important;
+      max-width: none !important;
+      flex: none !important;
+      margin-bottom: 6px;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // 模态框内的按钮容器
+  .ant-modal-body div[style*="display: flex"][style*="flex-wrap: wrap"] {
+    .ant-btn {
+      font-size: 13px;
+      height: 32px;
+    }
+  }
+}
+
+// 中等屏幕平板 (481px - 768px)
+@media (min-width: 481px) and (max-width: 768px) {
+  .page {
+    padding: 20px;
+  }
+
+  .header h1 {
+    font-size: 2.2rem;
+  }
+}
+
+// 大屏幕平板 (769px - 1024px)
+@media (min-width: 769px) and (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+
+  .page {
+    padding: 24px;
+    max-width: 900px;
+  }
+}
+
+// 小桌面 (1025px - 1200px)
+@media (min-width: 1025px) and (max-width: 1200px) {
+  html {
+    font-size: 15px;
+  }
+
+  .page {
+    max-width: 1000px;
+  }
+}
+
+// 大桌面 (1201px 以上)
 @media (min-width: 1201px) {
   html {
     font-size: 16px;
+  }
+
+  .page {
+    max-width: 1200px;
+  }
+}
+
+// 超大屏幕 (1440px 以上)
+@media (min-width: 1440px) {
+  .page {
+    max-width: 1400px;
   }
 }
 

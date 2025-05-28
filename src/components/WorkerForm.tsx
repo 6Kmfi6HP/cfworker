@@ -4,11 +4,11 @@ import {
   Collapse,
   Form,
   Input,
-  Space,
   Tooltip,
   Switch,
   message,
   Modal,
+  notification,
 } from "antd";
 import { 
   CloudUploadOutlined, 
@@ -26,6 +26,7 @@ import { useAccount } from '../contexts/AccountContext';
 import { apiClient } from '../services/apiClient';
 import { API_ENDPOINT, MAX_PROXY_IPS, STATS_API_ENDPOINT, WORKER_NAME_WORDS } from '../utils/constants';
 import { getCityToCountry } from '../utils/cityToCountry';
+import styles from './WorkerForm.module.css';
 
 interface WorkerFormProps {
   onWorkerCreated: (node: string, url: string) => void;
@@ -162,7 +163,12 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       const { data } = await apiClient.post(API_ENDPOINT, filteredFormData);
 
       onWorkerCreated(data.node, data.url);
-      message.success(t('workerCreationSuccess'));
+      notification.success({
+        message: t('workerCreationSuccess'),
+        description: t('workerCreationSuccessDesc', 'Worker node has been successfully created and deployed.'),
+        placement: 'topRight',
+        duration: 4.5,
+      });
     } catch (error: any) {
       console.error("创建 Worker 节点失败:", error);
       if (error.response?.data?.message) {
@@ -198,7 +204,12 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
     setSocks5Proxy('');
     setProxyIpCount(0);
     setSocks5RelayEnabled(false);
-    message.success(t('dataClearedSuccess'));
+    notification.success({
+      message: t('dataClearedSuccess'),
+      description: t('dataClearedSuccessDesc', 'All saved form data has been cleared successfully.'),
+      placement: 'topRight',
+      duration: 3,
+    });
   };
 
   // Handle proxy IP change
@@ -253,7 +264,12 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       form.setFieldValue('proxyIp', newValue);
       setProxyIpCount(limitedData.length);
       
-      message.success(t('fetchedIpsSuccess', { count: limitedData.length, country: countryCode }));
+      notification.success({
+        message: t('fetchedIpsSuccess', { count: limitedData.length, country: countryCode }),
+        description: t('fetchedIpsSuccessDesc', 'Proxy IPs have been automatically filled in the form.'),
+        placement: 'topRight',
+        duration: 4,
+      });
       setShowIpModal(false);
     } catch (error) {
       console.error('Error fetching IPs:', error);
@@ -264,7 +280,7 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
   };
 
   return (
-    <>
+    <div className={styles.workerFormContainer}>
       <Form
         form={form}
         layout="vertical"
@@ -402,36 +418,45 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
           ]}
         />
 
-        <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 16 }}>
-          <Space>
+        <div className={styles.buttonContainer}>
+          {/* 主要操作按钮 */}
+          <div className={styles.mainButtons}>
             <Button
               type="primary"
               loading={loading}
               onClick={createWorker}
               icon={<CloudUploadOutlined />}
+              className={styles.mainButton}
             >
               {t('createWorkerNode')}
             </Button>
             <Button
               onClick={onShowBulkDeployment}
               icon={<ThunderboltOutlined />}
+              className={styles.bulkButton}
             >
               {t('bulkDeploy', 'Bulk Deploy')}
             </Button>
             <Button
               onClick={onShowConfigManagement}
               icon={<SettingOutlined />}
+              className={styles.configButton}
             >
               {t('configManagement', 'Config')}
             </Button>
-          </Space>
-          <Button
-            onClick={clearSavedData}
-            icon={<DeleteOutlined />}
-          >
-            {t('clearSavedData')}
-          </Button>
-        </Space>
+          </div>
+          
+          {/* 清除数据按钮 */}
+          <div className={styles.clearButtonContainer}>
+            <Button
+              onClick={clearSavedData}
+              icon={<DeleteOutlined />}
+              className={styles.clearButton}
+            >
+              {t('clearSavedData')}
+            </Button>
+          </div>
+        </div>
       </Form>
 
       {/* IP Selection Modal */}
@@ -500,51 +525,20 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
                 </div>
               </div>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
-                gap: '10px',
-                maxHeight: showAllCountries ? '400px' : '250px',
-                overflowY: 'auto',
-                padding: '10px 5px',
-                borderRadius: '8px',
-                background: '#ffffff',
-                border: '1px solid #f0f0f0'
-              }}>
+              <div className={`${styles.countryGrid} ${showAllCountries ? styles.countryGridExpanded : ''}`}>
                 {countryOptions
                   .slice(0, showAllCountries ? countryOptions.length : 9)
                   .map(option => (
                     <Button 
                       key={option.value}
-                      style={{ 
-                        textAlign: 'center',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: '38px',
-                        fontSize: 'clamp(12px, 3vw, 14px)',
-                        padding: '0 5px',
-                        borderRadius: '6px',
-                        background: '#f5f5f5',
-                        border: '1px solid #e8e8e8',
-                        color: '#333333',
-                        boxShadow: '0 2px 0 rgba(0, 0, 0, 0.02)',
-                        transition: 'all 0.3s',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
+                      className={styles.countryButton}
                       title={`${option.count} IPs available`}
                       loading={fetchingIps}
                       onClick={() => fetchIpsByCountry(option.value)}
-                      className="country-button"
                     >
-                      <span style={{ 
-                        fontSize: 'clamp(13px, 3vw, 16px)',
-                        width: '100%',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}>{option.label}</span>
+                      <span className={styles.countryButtonSpan}>
+                        {option.label}
+                      </span>
                     </Button>
                   ))}
               </div>
@@ -572,7 +566,7 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
           </div>
         )}
       </Modal>
-    </>
+    </div>
   );
 };
 

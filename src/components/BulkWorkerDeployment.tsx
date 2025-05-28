@@ -17,8 +17,13 @@ import {
   Collapse,
   Switch,
   message,
+  notification,
   Tabs,
   Pagination,
+  Row,
+  Col,
+  Drawer,
+  theme,
 } from 'antd';
 import {
   CloudUploadOutlined,
@@ -42,7 +47,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type { ColumnsType } from 'antd/es/table';
 
 const { Text, Title } = Typography;
-const { TabPane } = Tabs;
 
 interface DeploymentTarget {
   accountId: string;
@@ -74,11 +78,16 @@ interface BulkWorkerDeploymentProps {
 const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, onClose }) => {
   const { t } = useTranslation();
   const { accounts, loading: accountsLoading } = useAccount();
+  const { token } = theme.useToken();
   const [form] = Form.useForm();
   const [deploymentTargets, setDeploymentTargets] = useState<DeploymentTarget[]>([]);
   const [isDeploying, setIsDeploying] = useState(false);
   const [deploymentProgress, setDeploymentProgress] = useState(0);
   const [currentDeployingAccount, setCurrentDeployingAccount] = useState<string>('');
+  
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
   
   // Tabs state
   const [activeTab, setActiveTab] = useState('deployment');
@@ -98,6 +107,17 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [showAllCountries, setShowAllCountries] = useState(false);
   const [socks5RelayEnabled, setSocks5RelayEnabled] = useState(false);
+
+  // Handle window resize for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Load saved form data and deployment history on component mount
   useEffect(() => {
@@ -154,7 +174,12 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
   const clearDeploymentHistory = () => {
     setDeploymentHistory([]);
     localStorage.removeItem('cfBulkDeploymentHistory');
-    message.success(t('deploymentHistoryCleared', 'Deployment history cleared'));
+    notification.success({
+      message: t('deploymentHistoryCleared', 'Deployment history cleared'),
+      description: t('deploymentHistoryClearedDesc', 'All deployment history records have been removed.'),
+      placement: 'topRight',
+      duration: 3,
+    });
   };
 
   // Save form data in real-time
@@ -281,7 +306,12 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
       form.setFieldValue('proxyIp', newValue);
       setProxyIpCount(limitedData.length);
       
-      message.success(t('fetchedIpsSuccess', { count: limitedData.length, country: countryCode }));
+      notification.success({
+        message: t('fetchedIpsSuccess', { count: limitedData.length, country: countryCode }),
+        description: t('fetchedIpsSuccessDesc', 'Proxy IPs have been automatically filled in the form.'),
+        placement: 'topRight',
+        duration: 4,
+      });
       setShowIpModal(false);
     } catch (error) {
       console.error('Error fetching IPs:', error);
@@ -422,7 +452,12 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
         });
       }, 100);
       
-      message.success(t('bulkDeploymentCompleted', 'Bulk deployment completed'));
+      notification.success({
+        message: t('bulkDeploymentCompleted', 'Bulk deployment completed'),
+        description: t('bulkDeploymentCompletedDesc', `Successfully deployed to ${successCount} accounts with ${errorCount} errors.`),
+        placement: 'topRight',
+        duration: 5,
+      });
     } catch (error) {
       console.error('Bulk deployment failed:', error);
       message.error(t('bulkDeploymentFailed', 'Bulk deployment failed'));
@@ -566,18 +601,62 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
   const errorCount = deploymentTargets.filter(t => t.status === 'error').length;
   const totalCount = deploymentTargets.length;
 
+  const containerStyle = {
+    background: token.colorBgContainer,
+    borderRadius: token.borderRadiusLG,
+    padding: isMobile ? '16px' : '24px',
+  };
+
+  const cardStyle = {
+    borderRadius: token.borderRadiusLG,
+    boxShadow: token.boxShadowTertiary,
+    border: `1px solid ${token.colorBorderSecondary}`,
+  };
+
+  const ResponsiveContainer = isMobile ? Drawer : Modal;
+  const containerProps = isMobile 
+    ? {
+        title: t('bulkWorkerDeployment', 'Bulk Worker Deployment'),
+        open: visible,
+        onClose,
+        placement: 'bottom' as const,
+        height: '90vh',
+        zIndex: 1000,
+        styles: {
+          body: { padding: '16px' },
+          header: { 
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            background: token.colorBgElevated,
+          }
+        },
+      }
+    : {
+        title: t('bulkWorkerDeployment', 'Bulk Worker Deployment'),
+        open: visible,
+        onCancel: onClose,
+        width: isTablet ? '95vw' : Math.min(1200, window.innerWidth * 0.9),
+        footer: null,
+        zIndex: 1000,
+        styles: {
+          body: { padding: isMobile ? '16px' : '24px' },
+          header: { 
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            background: token.colorBgElevated,
+          }
+        },
+      };
+
   return (
     <>
-      <Modal
-        title={t('bulkWorkerDeployment', 'Bulk Worker Deployment')}
-        open={visible}
-        onCancel={onClose}
-        width={900}
-        footer={null}
-      >
+      <ResponsiveContainer {...containerProps}>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
+          size={isMobile ? 'small' : 'middle'}
+          tabPosition={isMobile ? 'top' : 'top'}
+          style={{ 
+            marginBottom: 0,
+          }}
           items={[
             {
               key: 'deployment',
@@ -588,73 +667,102 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                 </span>
               ),
               children: (
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onValuesChange={saveFormData}
-                >
-                  <Form.Item
-                    name="workerNameBase"
-                    label={
-                      <Tooltip title={t('workerNameBaseTooltip', 'Base name for workers, each will get a unique suffix')}>
-                        {t('workerNameBase', 'Worker Name Base')}
-                      </Tooltip>
-                    }
-                    rules={[{ required: true, message: t('workerNameBaseRequired', 'Please enter worker name base') }]}
+                <div style={containerStyle}>
+                  <Form
+                    form={form}
+                    layout="vertical"
+                    onValuesChange={saveFormData}
+                    size={isMobile ? 'small' : 'middle'}
                   >
-                    <Input
-                      placeholder={t('workerNameBasePlaceholder', 'Enter base name for workers')}
-                      suffix={
-                        <Tooltip title={t('generateWorkerNameBase', 'Generate random base name')}>
-                          <Button
-                            type="text"
-                            icon={<ReloadOutlined />}
-                            onClick={generateWorkerNameBase}
-                            style={{ border: 'none', padding: 0 }}
-                          />
-                        </Tooltip>
-                      }
-                    />
-                  </Form.Item>
-
-                  <Collapse
-                    style={{ marginBottom: 24 }}
-                    items={[
-                      {
-                        key: "1",
-                        label: t('additionalParams', 'Additional Parameters'),
-                        children: (
-                          <>
-                            <Form.Item
-                              label={<Tooltip title={t('uuidTooltip')}>{t('uuid')}</Tooltip>}
-                              name={"uuid"}
-                            >
-                              <Input
-                                suffix={
-                                  <Tooltip title={t('uuidTooltip')}>
-                                    <Button
-                                      type="text"
-                                      icon={<ReloadOutlined />}
-                                      onClick={generateUUID}
-                                      style={{ border: 'none', padding: 0 }}
-                                    />
-                                  </Tooltip>
-                                }
+                  <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={24} md={24} lg={24}>
+                      <Form.Item
+                        name="workerNameBase"
+                        label={
+                          <Tooltip title={t('workerNameBaseTooltip', 'Base name for workers, each will get a unique suffix')}>
+                            {t('workerNameBase', 'Worker Name Base')}
+                          </Tooltip>
+                        }
+                        rules={[{ required: true, message: t('workerNameBaseRequired', 'Please enter worker name base') }]}
+                      >
+                        <Input
+                          placeholder={t('workerNameBasePlaceholder', 'Enter base name for workers')}
+                          suffix={
+                            <Tooltip title={t('generateWorkerNameBase', 'Generate random base name')}>
+                              <Button
+                                type="text"
+                                icon={<ReloadOutlined />}
+                                onClick={generateWorkerNameBase}
+                                style={{ border: 'none', padding: 0 }}
                               />
-                            </Form.Item>
-                            <Form.Item
-                              label={<Tooltip title={t('nodeNameTooltip')}>{t('nodeName')}</Tooltip>}
-                              name={"nodeName"}
-                            >
-                              <Input />
-                            </Form.Item>
-                            <Form.Item
-                              label={<Tooltip title={t('socks5RelayTooltip')}>{t('socks5Relay')}</Tooltip>}
-                              name="socks5Relay"
-                              valuePropName="checked"
-                            >
-                              <Switch onChange={(checked) => setSocks5RelayEnabled(checked)} />
-                            </Form.Item>
+                            </Tooltip>
+                          }
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Card 
+                    style={{ 
+                      marginBottom: 24,
+                      ...cardStyle,
+                    }}
+                    size="small"
+                  >
+                    <Collapse
+                      ghost
+                      size="small"
+                      items={[
+                        {
+                          key: "1",
+                          label: (
+                            <Text strong style={{ fontSize: isMobile ? '14px' : '16px' }}>
+                              {t('additionalParams', 'Additional Parameters')}
+                            </Text>
+                          ),
+                          children: (
+                            <Row gutter={[16, 16]}>
+                              <Col xs={24} sm={12} md={8}>
+                                <Form.Item
+                                  label={<Tooltip title={t('uuidTooltip')}>{t('uuid')}</Tooltip>}
+                                  name={"uuid"}
+                                >
+                                  <Input
+                                    size={isMobile ? 'small' : 'middle'}
+                                    suffix={
+                                      <Tooltip title={t('uuidTooltip')}>
+                                        <Button
+                                          type="text"
+                                          icon={<ReloadOutlined />}
+                                          onClick={generateUUID}
+                                          size="small"
+                                          style={{ border: 'none', padding: 0 }}
+                                        />
+                                      </Tooltip>
+                                    }
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} sm={12} md={8}>
+                                <Form.Item
+                                  label={<Tooltip title={t('nodeNameTooltip')}>{t('nodeName')}</Tooltip>}
+                                  name={"nodeName"}
+                                >
+                                  <Input size={isMobile ? 'small' : 'middle'} />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} sm={12} md={8}>
+                                <Form.Item
+                                  label={<Tooltip title={t('socks5RelayTooltip')}>{t('socks5Relay')}</Tooltip>}
+                                  name="socks5Relay"
+                                  valuePropName="checked"
+                                >
+                                  <Switch 
+                                    size={isMobile ? 'small' : 'default'}
+                                    onChange={(checked) => setSocks5RelayEnabled(checked)} 
+                                  />
+                                </Form.Item>
+                              </Col>
 
                             <Form.Item
                               noStyle
@@ -698,54 +806,72 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                               }
                             </Form.Item>
 
-                            <Form.Item
-                              label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
-                              name="socks5Proxy"
-                            >
-                              <Input
-                                value={socks5Proxy}
-                                placeholder={!!proxyIp && !socks5RelayEnabled
-                                  ? "Socks5 proxy is disabled when using proxy IP without relay" 
-                                  : "Example: user:pass@host:port or user1:pass1@host1:port1,user2:pass2@host2:port2"
-                                }
-                                onChange={(e) => handleSocks5ProxyChange(e.target.value)}
-                                disabled={socks5RelayEnabled ? false : (!!proxyIp && !socks5RelayEnabled)}
-                              />
-                            </Form.Item>
 
-                            <Form.Item
-                              label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
-                              name="customDomain"
-                            >
-                              <Input placeholder="Example: edtunnel.test.com NOTE: You must owner this domain." />
-                            </Form.Item>
-                          </>
-                        ),
-                      },
-                    ]}
-                  />
 
-                  <Form.Item
-                    name="targetAccounts"
-                    label={t('targetAccounts', 'Target Accounts')}
-                    rules={[{ required: true, message: t('targetAccountsRequired', 'Please select target accounts') }]}
-                  >
-                    {accountsLoading ? (
-                      <Skeleton.Input active style={{ width: '100%', height: '32px' }} />
-                    ) : (
-                      <Select
-                        mode="multiple"
-                        placeholder={t('selectTargetAccounts', 'Select accounts to deploy to')}
-                        onChange={handleAccountSelection}
-                        options={accounts
-                          .filter(account => account.isActive)
-                          .map(account => ({
-                            value: account.id,
-                            label: `${account.name || account.email} (${account.email})`,
-                          }))}
-                      />
-                    )}
-                  </Form.Item>
+                              <Col xs={24} sm={24} md={12}>
+                                <Form.Item
+                                  label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
+                                  name="socks5Proxy"
+                                >
+                                  <Input
+                                    size={isMobile ? 'small' : 'middle'}
+                                    value={socks5Proxy}
+                                    placeholder={!!proxyIp && !socks5RelayEnabled
+                                      ? "Socks5 proxy is disabled when using proxy IP without relay" 
+                                      : "Example: user:pass@host:port or user1:pass1@host1:port1,user2:pass2@host2:port2"
+                                    }
+                                    onChange={(e) => handleSocks5ProxyChange(e.target.value)}
+                                    disabled={socks5RelayEnabled ? false : (!!proxyIp && !socks5RelayEnabled)}
+                                  />
+                                </Form.Item>
+                              </Col>
+                              <Col xs={24} sm={24} md={12}>
+                                <Form.Item
+                                  label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
+                                  name="customDomain"
+                                >
+                                  <Input 
+                                    size={isMobile ? 'small' : 'middle'}
+                                    placeholder="Example: edtunnel.test.com NOTE: You must owner this domain." 
+                                  />
+                                </Form.Item>
+                              </Col>
+                            </Row>
+                          ),
+                        },
+                      ]}
+                    />
+                  </Card>
+
+                  <Card style={{ marginBottom: 24, ...cardStyle }} size="small">
+                    <Form.Item
+                      name="targetAccounts"
+                      label={
+                        <Text strong style={{ fontSize: isMobile ? '14px' : '16px' }}>
+                          {t('targetAccounts', 'Target Accounts')}
+                        </Text>
+                      }
+                      rules={[{ required: true, message: t('targetAccountsRequired', 'Please select target accounts') }]}
+                    >
+                      {accountsLoading ? (
+                        <Skeleton.Input active style={{ width: '100%', height: isMobile ? '28px' : '32px' }} />
+                      ) : (
+                        <Select
+                          mode="multiple"
+                          size={isMobile ? 'small' : 'middle'}
+                          placeholder={t('selectTargetAccounts', 'Select accounts to deploy to')}
+                          onChange={handleAccountSelection}
+                          maxTagCount={isMobile ? 2 : 5}
+                          options={accounts
+                            .filter(account => account.isActive)
+                            .map(account => ({
+                              value: account.id,
+                              label: `${account.name || account.email} (${account.email})`,
+                            }))}
+                        />
+                      )}
+                    </Form.Item>
+                  </Card>
 
                   {deploymentTargets.length > 0 && (
                     <>
@@ -753,56 +879,92 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                       <Title level={5}>{t('deploymentTargets', 'Deployment Targets')}</Title>
                       
                       {isDeploying && (
-                        <Card style={{ marginBottom: 16 }}>
+                        <Card style={{ marginBottom: 16, ...cardStyle }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
                             <div>
-                              <Text strong>{t('deploymentProgress', 'Deployment Progress')}</Text>
+                              <Text strong style={{ fontSize: isMobile ? '14px' : '16px' }}>
+                                {t('deploymentProgress', 'Deployment Progress')}
+                              </Text>
                               {currentDeployingAccount && (
-                                <Text type="secondary" style={{ marginLeft: 8 }}>
-                                  {t('currentlyDeploying', 'Currently deploying to')}: {currentDeployingAccount}
-                                </Text>
+                                <div style={{ marginTop: isMobile ? 4 : 0 }}>
+                                  <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                    {t('currentlyDeploying', 'Currently deploying to')}: {currentDeployingAccount}
+                                  </Text>
+                                </div>
                               )}
                             </div>
                             <Progress 
                               percent={Math.round(deploymentProgress)} 
                               status={deploymentProgress === 100 ? 'success' : 'active'}
+                              size={isMobile ? 'small' : 'default'}
                             />
-                            <div>
-                              <Tag color="green">{t('success', 'Success')}: {successCount}</Tag>
-                              <Tag color="red">{t('error', 'Error')}: {errorCount}</Tag>
-                              <Tag>{t('total', 'Total')}: {totalCount}</Tag>
+                            <div style={{ 
+                              display: 'flex', 
+                              flexWrap: 'wrap', 
+                              gap: isMobile ? '4px' : '8px' 
+                            }}>
+                              <Tag color="green" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                {t('success', 'Success')}: {successCount}
+                              </Tag>
+                              <Tag color="red" style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                {t('error', 'Error')}: {errorCount}
+                              </Tag>
+                              <Tag style={{ fontSize: isMobile ? '12px' : '14px' }}>
+                                {t('total', 'Total')}: {totalCount}
+                              </Tag>
                             </div>
                           </Space>
                         </Card>
                       )}
 
-                      <Table
-                        columns={columns}
-                        dataSource={deploymentTargets}
-                        rowKey="accountId"
-                        pagination={false}
-                        size="small"
-                      />
+                      <Card style={{ ...cardStyle }}>
+                        <Table
+                          columns={columns}
+                          dataSource={deploymentTargets}
+                          rowKey="accountId"
+                          pagination={false}
+                          size={isMobile ? 'small' : 'middle'}
+                          scroll={{ x: isMobile ? 800 : undefined }}
+                        />
+                      </Card>
                     </>
                   )}
 
-                  <Divider />
+                  <Divider style={{ margin: isMobile ? '16px 0' : '24px 0' }} />
                   
-                  <Space>
-                    <Button
-                      type="primary"
-                      icon={<CloudUploadOutlined />}
-                      loading={isDeploying}
-                      disabled={deploymentTargets.length === 0}
-                      onClick={handleBulkDeploy}
-                    >
-                      {isDeploying ? t('deploying', 'Deploying') : t('startDeployment', 'Start Deployment')}
-                    </Button>
-                    <Button onClick={onClose}>
-                      {t('cancel', 'Cancel')}
-                    </Button>
-                  </Space>
+                  <Row gutter={[8, 8]}>
+                    <Col xs={24} sm={12} md={8}>
+                      <Button
+                        type="primary"
+                        icon={<CloudUploadOutlined />}
+                        loading={isDeploying}
+                        disabled={deploymentTargets.length === 0}
+                        onClick={handleBulkDeploy}
+                        size={isMobile ? 'middle' : 'large'}
+                        block
+                        style={{
+                          borderRadius: token.borderRadiusLG,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {isDeploying ? t('deploying', 'Deploying') : t('startDeployment', 'Start Deployment')}
+                      </Button>
+                    </Col>
+                    <Col xs={24} sm={12} md={8}>
+                      <Button 
+                        onClick={onClose}
+                        size={isMobile ? 'middle' : 'large'}
+                        block
+                        style={{
+                          borderRadius: token.borderRadiusLG,
+                        }}
+                      >
+                        {t('cancel', 'Cancel')}
+                      </Button>
+                    </Col>
+                  </Row>
                 </Form>
+                </div>
               ),
             },
             {
@@ -817,46 +979,64 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                 </span>
               ),
               children: (
-                <div>
-                  <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Title level={5} style={{ margin: 0 }}>
-                      {t('deploymentHistory', 'Deployment History')}
-                    </Title>
-                    {deploymentHistory.length > 0 && (
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={clearDeploymentHistory}
-                        size="small"
-                      >
-                        {t('clearHistory', 'Clear History')}
-                      </Button>
-                    )}
-                  </div>
+                <div style={containerStyle}>
+                  <Card style={{ marginBottom: 16, ...cardStyle }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: isMobile ? 'flex-start' : 'center',
+                      flexDirection: isMobile ? 'column' : 'row',
+                      gap: isMobile ? '8px' : '0'
+                    }}>
+                      <Title level={5} style={{ margin: 0, fontSize: isMobile ? '16px' : '18px' }}>
+                        {t('deploymentHistory', 'Deployment History')}
+                      </Title>
+                      {deploymentHistory.length > 0 && (
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={clearDeploymentHistory}
+                          size={isMobile ? 'small' : 'middle'}
+                        >
+                          {t('clearHistory', 'Clear History')}
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
                   
                   {deploymentHistory.length === 0 ? (
-                    <div style={{ 
-                      textAlign: 'center', 
-                      padding: '40px 20px',
-                      background: '#f8f8f8',
-                      borderRadius: '8px',
-                      color: '#999'
-                    }}>
-                      <HistoryOutlined style={{ fontSize: '24px', marginBottom: '8px' }} />
-                      <div>{t('noDeploymentHistory', 'No deployment history yet')}</div>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        {t('deploymentHistoryDescription', 'Deployment records will appear here after you complete bulk deployments')}
-                      </Text>
-                    </div>
+                    <Card style={{ ...cardStyle }}>
+                      <div style={{ 
+                        textAlign: 'center', 
+                        padding: isMobile ? '30px 16px' : '40px 20px',
+                        background: token.colorBgLayout,
+                        borderRadius: token.borderRadiusLG,
+                        color: token.colorTextSecondary
+                      }}>
+                        <HistoryOutlined style={{ 
+                          fontSize: isMobile ? '20px' : '24px', 
+                          marginBottom: '8px',
+                          color: token.colorTextTertiary
+                        }} />
+                        <div style={{ fontSize: isMobile ? '14px' : '16px', marginBottom: '4px' }}>
+                          {t('noDeploymentHistory', 'No deployment history yet')}
+                        </div>
+                        <Text type="secondary" style={{ fontSize: isMobile ? '11px' : '12px' }}>
+                          {t('deploymentHistoryDescription', 'Deployment records will appear here after you complete bulk deployments')}
+                        </Text>
+                      </div>
+                    </Card>
                   ) : (
                     <>
-                                             <Table
-                         columns={historyColumns}
-                         dataSource={paginatedHistory}
-                         rowKey="id"
-                         pagination={false}
-                         size="small"
+                      <Card style={{ ...cardStyle }}>
+                        <Table
+                          columns={historyColumns}
+                          dataSource={paginatedHistory}
+                          rowKey="id"
+                          pagination={false}
+                          size={isMobile ? 'small' : 'middle'}
+                          scroll={{ x: isMobile ? 600 : undefined }}
                          expandable={{
                            expandedRowRender: (record) => {
                              // Create history-specific columns that only show completed results
@@ -959,19 +1139,64 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                                        {t('deploymentConfiguration', 'Deployment Configuration')}
                                      </Title>
                                      <div style={{ 
-                                       background: '#f5f5f5', 
+                                       background: token.colorBgLayout, 
                                        padding: '12px', 
-                                       borderRadius: '6px',
-                                       fontSize: '12px',
-                                       fontFamily: 'monospace'
+                                       borderRadius: token.borderRadiusLG,
+                                       fontSize: isMobile ? '11px' : '12px',
+                                       fontFamily: 'monospace',
+                                       border: `1px solid ${token.colorBorderSecondary}`,
+                                       maxHeight: '300px',
+                                       overflowY: 'auto'
                                      }}>
                                        {Object.entries(record.formData)
-                                         .filter(([key, value]) => value !== '' && value !== undefined && value !== null)
-                                         .map(([key, value]) => (
-                                           <div key={key} style={{ marginBottom: '4px' }}>
-                                             <Text strong>{key}:</Text> {String(value)}
-                                           </div>
-                                         ))}
+                                         .filter(([, value]) => value !== '' && value !== undefined && value !== null)
+                                         .map(([key, value]) => {
+                                           const stringValue = String(value);
+                                           const isLongText = stringValue.length > 50;
+                                           
+                                           return (
+                                             <div key={key} style={{ 
+                                               marginBottom: '8px',
+                                               wordBreak: 'break-all',
+                                               lineHeight: '1.4'
+                                             }}>
+                                               <Text strong style={{ 
+                                                 color: token.colorTextHeading,
+                                                 fontSize: isMobile ? '11px' : '12px'
+                                               }}>
+                                                 {key}:
+                                               </Text>
+                                               <div style={{ 
+                                                 marginTop: '2px',
+                                                 wordWrap: 'break-word',
+                                                 whiteSpace: isLongText ? 'pre-wrap' : 'normal',
+                                                 color: token.colorText,
+                                                 maxWidth: '100%',
+                                                 overflow: 'hidden'
+                                               }}>
+                                                 {isLongText ? (
+                                                   <Text 
+                                                     copyable={{ 
+                                                       text: stringValue,
+                                                       tooltips: [t('copy', 'Copy'), t('copied', 'Copied')]
+                                                     }}
+                                                     style={{ 
+                                                       fontSize: isMobile ? '10px' : '11px',
+                                                       wordBreak: 'break-all',
+                                                       display: 'block'
+                                                     }}
+                                                   >
+                                                     {stringValue}
+                                                   </Text>
+                                                 ) : (
+                                                   <span style={{ fontSize: isMobile ? '11px' : '12px' }}>
+                                                     {stringValue}
+                                                   </span>
+                                                 )}
+                                               </div>
+                                             </div>
+                                           );
+                                         })}
                                      </div>
                                    </div>
                                  )}
@@ -982,6 +1207,8 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                          }}
                        />
                       
+                        </Card>
+                      
                       {deploymentHistory.length > historyPageSize && (
                         <div style={{ marginTop: 16, textAlign: 'center' }}>
                           <Pagination
@@ -991,6 +1218,7 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                             onChange={setHistoryPage}
                             showSizeChanger={false}
                             showQuickJumper
+                            size={isMobile ? 'small' : 'default'}
                             showTotal={(total, range) => 
                               `${range[0]}-${range[1]} of ${total} ${t('records', 'records')}`
                             }
@@ -1004,85 +1232,104 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
             },
           ]}
         />
-      </Modal>
+      </ResponsiveContainer>
 
       {/* IP Selection Modal */}
       <Modal
         title={t('selectProxyIpCountry')}
         open={showIpModal}
         onCancel={() => setShowIpModal(false)}
+        width={isMobile ? '95vw' : isTablet ? '80vw' : 600}
+        zIndex={2000}
+        styles={{
+          body: { padding: isMobile ? '16px' : '24px' },
+          header: { 
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            background: token.colorBgElevated,
+          }
+        }}
         footer={[
           <Button key="refresh" 
             onClick={fetchCountryData} 
             loading={loadingCountries} 
             icon={<ReloadOutlined />}
+            size={isMobile ? 'small' : 'middle'}
             style={{
-              borderRadius: '6px',
-              boxShadow: '0 2px 0 rgba(0, 0, 0, 0.05)'
+              borderRadius: token.borderRadiusLG,
+              boxShadow: token.boxShadowTertiary
             }}
           >
             {t('refreshCountryList')}
           </Button>,
           <Button key="cancel" 
             onClick={() => setShowIpModal(false)}
+            size={isMobile ? 'small' : 'middle'}
             style={{
               marginLeft: '10px',
-              borderRadius: '6px'
+              borderRadius: token.borderRadiusLG,
             }}
           >
             {t('cancel')}
           </Button>
         ]}
       >
-        <p style={{ marginBottom: '20px' }}>
-          {t('selectProxyIpDescription')}
+        <div style={{ 
+          marginBottom: '20px',
+          padding: isMobile ? '12px' : '16px',
+          background: token.colorBgLayout,
+          borderRadius: token.borderRadiusLG,
+          border: `1px solid ${token.colorBorderSecondary}`
+        }}>
+          <Text style={{ fontSize: isMobile ? '13px' : '14px' }}>
+            {t('selectProxyIpDescription')}
+          </Text>
           <br />
-          <small>({t('maxIpsInfo', { count: MAX_PROXY_IPS })})</small>
-        </p>
+          <Text type="secondary" style={{ fontSize: isMobile ? '11px' : '12px' }}>
+            ({t('maxIpsInfo', { count: MAX_PROXY_IPS })})
+          </Text>
+        </div>
         
         {loadingCountries ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '30px 20px',
-            background: '#f8f8f8',
-            borderRadius: '8px',
-            margin: '10px 0'
-          }}>
-            <div style={{ marginBottom: '10px', fontSize: '16px' }}>
-              <ReloadOutlined spin style={{ marginRight: '10px', color: '#1890ff' }} />
-              {t('loadingCountries')}
+          <Card style={{ ...cardStyle }}>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: isMobile ? '20px 16px' : '30px 20px',
+            }}>
+              <div style={{ marginBottom: '10px', fontSize: isMobile ? '14px' : '16px' }}>
+                <ReloadOutlined spin style={{ marginRight: '10px', color: token.colorPrimary }} />
+                {t('loadingCountries')}
+              </div>
+              <Text type="secondary" style={{ fontSize: isMobile ? '12px' : '13px' }}>
+                {t('inferringCountries')}
+              </Text>
             </div>
-            <div style={{ color: '#595959', fontSize: '13px' }}>
-              {t('inferringCountries')}
-            </div>
-          </div>
+          </Card>
         ) : (
           <div>
             {countryOptions.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '30px 20px',
-                background: '#f8f8f8',
-                borderRadius: '8px',
-                margin: '10px 0',
-                color: '#ff4d4f'
-              }}>
-                <div style={{ marginBottom: '10px', fontSize: '16px' }}>
-                  {t('noCountriesFound')}
+              <Card style={{ ...cardStyle }}>
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: isMobile ? '20px 16px' : '30px 20px',
+                  color: token.colorError
+                }}>
+                  <div style={{ marginBottom: '10px', fontSize: isMobile ? '14px' : '16px' }}>
+                    {t('noCountriesFound')}
+                  </div>
                 </div>
-              </div>
+              </Card>
             ) : (
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', 
-                gap: '10px',
-                maxHeight: showAllCountries ? '400px' : '250px',
-                overflowY: 'auto',
-                padding: '10px 5px',
-                borderRadius: '8px',
-                background: '#ffffff',
-                border: '1px solid #f0f0f0'
-              }}>
+              <Card style={{ ...cardStyle }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: isMobile 
+                    ? 'repeat(auto-fit, minmax(80px, 1fr))' 
+                    : 'repeat(auto-fit, minmax(100px, 1fr))', 
+                  gap: isMobile ? '8px' : '10px',
+                  maxHeight: showAllCountries ? '400px' : (isMobile ? '200px' : '250px'),
+                  overflowY: 'auto',
+                  padding: isMobile ? '8px' : '10px 5px',
+                }}>
                 {countryOptions
                   .slice(0, showAllCountries ? countryOptions.length : 9)
                   .map(option => (
@@ -1119,27 +1366,29 @@ const BulkWorkerDeployment: React.FC<BulkWorkerDeploymentProps> = ({ visible, on
                       }}>{option.label}</span>
                     </Button>
                   ))}
-              </div>
-            )}
-            {countryOptions.length > 9 && (
-              <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '5px' }}>
-                <Button 
-                  onClick={() => setShowAllCountries(!showAllCountries)}
-                  type="primary"
-                  ghost
-                  style={{
-                    borderRadius: '20px',
-                    padding: '0 20px',
-                    height: '32px',
-                    boxShadow: '0 2px 0 rgba(0, 0, 0, 0.05)'
-                  }}
-                  icon={showAllCountries ? <UpOutlined /> : <DownOutlined />}
-                >
-                  {showAllCountries 
-                    ? t('collapseCountries') 
-                    : t('showAllCountries', {count: countryOptions.length})}
-                </Button>
-              </div>
+                </div>
+                {countryOptions.length > 9 && (
+                  <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '5px' }}>
+                    <Button 
+                      onClick={() => setShowAllCountries(!showAllCountries)}
+                      type="primary"
+                      ghost
+                      size={isMobile ? 'small' : 'middle'}
+                      style={{
+                        borderRadius: token.borderRadiusLG,
+                        padding: '0 20px',
+                        height: isMobile ? '28px' : '32px',
+                        boxShadow: token.boxShadowTertiary
+                      }}
+                      icon={showAllCountries ? <UpOutlined /> : <DownOutlined />}
+                    >
+                      {showAllCountries 
+                        ? t('collapseCountries') 
+                        : t('showAllCountries', {count: countryOptions.length})}
+                    </Button>
+                  </div>
+                )}
+              </Card>
             )}
           </div>
         )}
