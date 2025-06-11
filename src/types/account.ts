@@ -23,4 +23,7 @@ export interface AccountFormData {
 export interface AccountListItem extends AccountCredentials {
   workerCount?: number;
   lastUsed?: Date;
-} 
+}
+
+// Alias for backward compatibility
+export type Account = AccountCredentials;

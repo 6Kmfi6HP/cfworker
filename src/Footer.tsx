@@ -1,17 +1,14 @@
 import React from 'react';
-// import { GithubOutlined } from '@ant-design/icons';
 
 const Footer: React.FC = () => {
     const currentYear = new Date().getFullYear();
     return (
-        <footer className="footer">
-            <div className="footer-content">
+        <footer className="mt-12 py-6 border-t">
+            <div className="flex justify-between items-center text-sm text-muted-foreground sm:flex-row flex-col gap-3">
                 <p>© {currentYear} CF Worker 节点搭建. All rights reserved.</p>
-                <div className="footer-links">
-                    <a href="https://t.me/edtunnel" target="_blank" rel="noopener noreferrer">
-                        Telegram
-                    </a>
-                </div>
+                <a href="https://t.me/edtunnel" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80 transition-colors">
+                    Telegram
+                </a>
             </div>
         </footer>
     );

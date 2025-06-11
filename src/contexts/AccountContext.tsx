@@ -3,7 +3,7 @@ import { AccountCredentials, AccountFormData } from '../types/account';
 import { encryptedStorage } from '../services/storage';
 import { apiClient } from '../services/apiClient';
 import { v4 as uuidv4 } from 'uuid';
-import { message, notification } from 'antd';
+import { useToast } from '../hooks/use-toast';
 
 interface AccountContextType {
   accounts: AccountCredentials[];
@@ -15,6 +15,8 @@ interface AccountContextType {
   deleteAccount: (id: string) => Promise<void>;
   refreshAccounts: () => Promise<void>;
   getCurrentCredentials: () => { email: string; globalAPIKey: string } | null;
+  selectedAccount: AccountCredentials | null;
+  setSelectedAccount: (account: AccountCredentials | null) => void;
 }
 
 const AccountContext = createContext<AccountContextType | undefined>(undefined);
@@ -32,8 +34,10 @@ interface AccountProviderProps {
 }
 
 export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) => {
+  const { toast } = useToast();
   const [accounts, setAccounts] = useState<AccountCredentials[]>([]);
   const [currentAccount, setCurrentAccountState] = useState<AccountCredentials | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<AccountCredentials | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Initialize storage and load accounts
@@ -58,7 +62,7 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         }
       } catch (error) {
         console.error('Failed to initialize storage:', error);
-        message.error('Failed to initialize account storage');
+        toast({ title: 'Failed to initialize account storage', variant: 'destructive' });
       } finally {
         setLoading(false);
       }
@@ -73,7 +77,7 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       setAccounts(allAccounts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()));
     } catch (error) {
       console.error('Failed to load accounts:', error);
-      message.error('Failed to load accounts');
+      toast({ title: 'Failed to load accounts', variant: 'destructive' });
     }
   };
 
@@ -115,15 +119,13 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccount(newAccount);
       }
       
-      notification.success({
-        message: 'Account added successfully',
+      toast({
+        title: 'Account added successfully',
         description: 'New account has been added and encrypted securely.',
-        placement: 'topRight',
-        duration: 3,
       });
     } catch (error) {
       console.error('Failed to add account:', error);
-      message.error('Failed to add account');
+      toast({ title: 'Failed to add account', variant: 'destructive' });
       throw error;
     }
   };
@@ -149,15 +151,13 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccountState(updatedAccount);
       }
       
-      notification.success({
-        message: 'Account updated successfully',
+      toast({
+        title: 'Account updated successfully',
         description: 'Account information has been updated and saved securely.',
-        placement: 'topRight',
-        duration: 3,
       });
     } catch (error) {
       console.error('Failed to update account:', error);
-      message.error('Failed to update account');
+      toast({ title: 'Failed to update account', variant: 'destructive' });
       throw error;
     }
   };
@@ -172,15 +172,13 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
         setCurrentAccount(null);
       }
       
-      notification.success({
-        message: 'Account deleted successfully',
+      toast({
+        title: 'Account deleted successfully',
         description: 'Account has been permanently removed from storage.',
-        placement: 'topRight',
-        duration: 3,
       });
     } catch (error) {
       console.error('Failed to delete account:', error);
-      message.error('Failed to delete account');
+      toast({ title: 'Failed to delete account', variant: 'destructive' });
       throw error;
     }
   };
@@ -205,6 +203,8 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
     deleteAccount,
     refreshAccounts,
     getCurrentCredentials,
+    selectedAccount,
+    setSelectedAccount,
   };
 
   return (
@@ -212,4 +212,4 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       {children}
     </AccountContext.Provider>
   );
-}; 
+};

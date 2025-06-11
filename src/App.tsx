@@ -2,19 +2,19 @@ import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import { AccountProvider } from './contexts/AccountContext';
-import { ThemeProvider, useTheme } from './ThemeContext';
-import { Helmet } from 'react-helmet';
+import { ThemeProvider } from './ThemeContext';
+import { Helmet } from 'react-helmet-async';
 
 // Components
 import Header from './components/Header';
 import WorkerForm from './components/WorkerForm';
 import NodeOutput from './components/NodeOutput';
 import AccountManagement from './components/AccountManagement';
+import AddAccountModal from './components/AddAccountModal';
 import BulkWorkerDeployment from './components/BulkWorkerDeployment';
 import ConfigManagement from './components/ConfigManagement';
 import Footer from './Footer';
 
-import './theme.css';
 
 function AppContent() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -28,11 +28,11 @@ function AppContent() {
   const [isNodeGenerated, setIsNodeGenerated] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [showAccountManagement, setShowAccountManagement] = useState(false);
+  const [showAddAccountModal, setShowAddAccountModal] = useState(false);
   const [showBulkDeployment, setShowBulkDeployment] = useState(false);
   const [showConfigManagement, setShowConfigManagement] = useState(false);
   
   const { t } = useTranslation();
-  const { theme } = useTheme();
 
   // Load saved language on component mount
   useEffect(() => {
@@ -70,7 +70,7 @@ function AppContent() {
   };
 
   return (
-    <div className={`page ${theme}`}>
+    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
       <Helmet>
         <title>{t('title')} | Easy Cloudflare Worker Management</title>
         <meta name="description" content={t('metaDescription')} />
@@ -79,30 +79,14 @@ function AppContent() {
         <meta name="twitter:title" content={`${t('title')} | Easy Cloudflare Worker Management`} />
         <meta name="twitter:description" content={t('metaDescription')} />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-        <style>
-          {`
-            .country-button:hover {
-              background-color: ${theme === 'dark' ? '#303030' : '#e6f7ff'} !important;
-              border-color: ${theme === 'dark' ? '#177ddc' : '#40a9ff'} !important;
-            }
-            @media (max-width: 480px) {
-              .action-buttons {
-                flex-direction: column;
-                align-items: stretch;
-              }
-              .action-buttons > * {
-                margin-bottom: 8px;
-                width: 100%;
-              }
-            }
-          `}
-        </style>
+        <meta name="mobile-web-app-capable" content="yes" />
       </Helmet>
 
       <Header
         selectedLanguage={selectedLanguage}
         onLanguageChange={handleLanguageChange}
         onShowAccountManagement={() => setShowAccountManagement(true)}
+        onShowAddAccount={() => setShowAddAccountModal(true)}
         showApiKeyModal={showApiKeyModal}
         onCloseApiKeyModal={() => setShowApiKeyModal(false)}
         onShowApiKeyModal={() => setShowApiKeyModal(true)}
@@ -120,6 +104,7 @@ function AppContent() {
         isNodeGenerated={isNodeGenerated}
         showShareModal={showShareModal}
         onCloseShareModal={() => setShowShareModal(false)}
+        setShowShareModal={setShowShareModal}
       />
 
       <Footer />
@@ -128,6 +113,12 @@ function AppContent() {
       <AccountManagement
         visible={showAccountManagement}
         onClose={() => setShowAccountManagement(false)}
+      />
+
+      {/* Add Account Modal */}
+      <AddAccountModal
+        visible={showAddAccountModal}
+        onClose={() => setShowAddAccountModal(false)}
       />
 
       {/* Bulk Worker Deployment Modal */}

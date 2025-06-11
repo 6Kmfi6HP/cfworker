@@ -1,9 +1,15 @@
+import path from "path"
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(process.cwd(), "src"),
+    },
+  },
   css: {
     preprocessorOptions: {
       scss: {
@@ -18,11 +24,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
         secure: true,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Auth-Email, X-Auth-Key, X-Account-Context',
-        }
       }
     }
   },
@@ -39,9 +40,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-antd': ['antd'],
           'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          'vendor-utils': ['axios', 'uuid', 'react-copy-to-clipboard', 'react-helmet', 'react-share'],
+          'vendor-utils': ['axios', 'uuid', 'react-copy-to-clipboard', 'react-helmet-async', 'react-share'],
           'vendor-window': ['react-window', 'react-window-infinite-loader']
         },
         chunkFileNames: (chunkInfo) => {
@@ -75,11 +75,10 @@ export default defineConfig({
     include: [
       'react',
       'react-dom',
-      'antd',
       'axios',
       'uuid',
       'react-copy-to-clipboard',
-      'react-helmet',
+      'react-helmet-async',
       'react-share',
       'react-window',
       'react-window-infinite-loader'

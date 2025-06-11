@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { message } from 'antd';
+import { toast } from '../hooks/use-toast';
 
 // API 客户端类
 class APIClient {
@@ -94,8 +94,9 @@ class APIClient {
   // 判断是否为 Cloudflare API 请求
   private isCloudflareAPI(url?: string): boolean {
     if (!url) return false;
-    return url.includes('cloudflare.com') || 
-           url.includes('api.cloudflare.com');
+    return url.includes('cloudflare.com') ||
+           url.includes('api.cloudflare.com') ||
+           url.startsWith('/api/');
   }
 
   // 生成账号哈希用于缓存隔离
@@ -111,90 +112,67 @@ class APIClient {
   }
 
   // 处理 API 错误
-  private handleAPIError(error: any) {
-    const status = error.response?.status;
-    const data = error.response?.data;
+  private handleAPIError(error: unknown) {
+    const status = error && typeof error === 'object' && 'response' in error && 
+      error.response && typeof error.response === 'object' && 'status' in error.response 
+      ? error.response.status : undefined;
+    const data = error && typeof error === 'object' && 'response' in error && 
+      error.response && typeof error.response === 'object' && 'data' in error.response 
+      ? error.response.data : undefined;
 
     switch (status) {
       case 401:
-        message.error('Authentication failed. Please check your API credentials.');
+        toast({ title: 'Authentication failed. Please check your API credentials.', variant: 'destructive' });
         break;
       case 403:
-        message.error('Access denied. Please check your account permissions.');
+        toast({ title: 'Access denied. Please check your account permissions.', variant: 'destructive' });
         break;
       case 429:
-        message.error('Rate limit exceeded. Please try again later.');
+        toast({ title: 'Rate limit exceeded. Please try again later.', variant: 'destructive' });
         break;
       case 500:
-        message.error('Server error. Please try again later.');
+        toast({ title: 'Server error. Please try again later.', variant: 'destructive' });
         break;
       default:
-        if (data?.errors && Array.isArray(data.errors)) {
-          const errorMessage = data.errors.map((err: any) => err.message).join(', ');
-          message.error(`API Error: ${errorMessage}`);
-        } else if (data?.message) {
-          message.error(`API Error: ${data.message}`);
+        if (data && typeof data === 'object' && 'errors' in data && Array.isArray(data.errors)) {
+          const errorMessage = data.errors.map((err: unknown) => 
+            err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Unknown error'
+          ).join(', ');
+          toast({ title: `API Error: ${errorMessage}`, variant: 'destructive' });
+        } else if (data && typeof data === 'object' && 'message' in data) {
+          toast({ title: `API Error: ${String(data.message)}`, variant: 'destructive' });
         }
         break;
     }
   }
 
-  // 权限校验：确保请求使用正确的账号上下文
-  private validateAccountContext(config: AxiosRequestConfig): boolean {
-    // 对于 Cloudflare API，检查是否有凭证和认证头
-    if (this.isCloudflareAPI(config.url)) {
-      if (!this.currentAccountCredentials) {
-        console.warn('[API Client] No account credentials set for Cloudflare API');
-        return false;
-      }
-
-      if (!config.headers?.['X-Auth-Email']) {
-        console.warn('[API Client] Cloudflare API request without authentication headers');
-        return false;
-      }
-    } else {
-      // 对于自定义 API，只检查是否有凭证（凭证会在请求体中传递）
-      if (!this.currentAccountCredentials) {
-        console.warn('[API Client] No account credentials set for API request');
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   // 通用请求方法
-  async request<T = any>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
-    // 权限校验
-    if (!this.validateAccountContext(config)) {
-      throw new Error('Invalid account context for API request');
-    }
-
+  async request<T = unknown>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.axiosInstance.request<T>(config);
   }
 
   // GET 请求
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'GET', url });
   }
 
   // POST 请求
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'POST', url, data });
   }
 
   // PUT 请求
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'PUT', url, data });
   }
 
   // DELETE 请求
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'DELETE', url });
   }
 
   // PATCH 请求
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+  async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.request<T>({ ...config, method: 'PATCH', url, data });
   }
 }
@@ -212,4 +190,4 @@ declare module 'axios' {
       startTime: number;
     };
   }
-} 
+}

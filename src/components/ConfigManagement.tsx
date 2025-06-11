@@ -1,41 +1,40 @@
 import React, { useState } from 'react';
-import {
-  Modal,
-  Button,
-  Space,
-  Upload,
-  message,
-  notification,
-  Typography,
-  Divider,
-  Alert,
-  Card,
-  Descriptions,
-  Tag,
-} from 'antd';
-import {
-  DownloadOutlined,
-  UploadOutlined,
-  ExportOutlined,
-  ImportOutlined,
-  FileTextOutlined,
-  WarningOutlined,
-} from '@ant-design/icons';
-import { useAccount } from '../contexts/AccountContext';
+import { Account } from '../types/account';
 import { useTranslation } from 'react-i18next';
-import type { UploadFile } from 'antd/es/upload/interface';
-
-const { Text, Title } = Typography;
-const { Dragger } = Upload;
+import { Download, Upload, FileText, AlertTriangle } from 'lucide-react';
+import { useAccount } from '../contexts/AccountContext';
+import { Button } from './ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from './ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { useToast } from '../hooks/use-toast';
+import { Separator } from './ui/separator';
 
 interface ConfigData {
   version: string;
   exportDate: string;
-  accounts: any[];
+  accounts: Account[];
   settings: {
     theme: string;
     language: string;
-    formData?: any;
+    formData?: Record<string, unknown>;
   };
 }
 
@@ -47,10 +46,12 @@ interface ConfigManagementProps {
 const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose }) => {
   const { t } = useTranslation();
   const { accounts, addAccount } = useAccount();
+  const { toast } = useToast();
   const [importing, setImporting] = useState(false);
   const [importPreview, setImportPreview] = useState<ConfigData | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [showReloadDialog, setShowReloadDialog] = useState(false);
 
-  // 导出配置
   const handleExport = () => {
     try {
       const configData: ConfigData = {
@@ -58,13 +59,12 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
         exportDate: new Date().toISOString(),
         accounts: accounts.map(account => ({
           ...account,
-          // 移除敏感信息，只保留结构
           globalAPIKey: '[ENCRYPTED]',
           accountId: account.accountId ? '[ENCRYPTED]' : undefined,
         })),
         settings: {
           theme: localStorage.getItem('theme') || 'light',
-          language: localStorage.getItem('selectedLanguage') || 'en',
+          language: localStorage.getItem('i18nextLng') || 'en',
           formData: JSON.parse(localStorage.getItem('cfWorkerFormData') || '{}'),
         },
       };
@@ -81,64 +81,67 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      notification.success({
-        message: t('configExportSuccess', 'Configuration exported successfully'),
-        description: t('configExportSuccessDesc', 'Configuration file has been downloaded to your device.'),
-        placement: 'topRight',
-        duration: 3,
+      toast({
+        title: t('configExportSuccess'),
+        description: t('configExportSuccessDesc'),
       });
     } catch (error) {
       console.error('Export failed:', error);
-      message.error(t('configExportFailed', 'Failed to export configuration'));
+      toast({
+        title: t('configExportFailed'),
+        variant: 'destructive',
+      });
     }
   };
 
-  // 预览导入文件
-  const handleFileUpload = (file: UploadFile) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const configData = JSON.parse(e.target?.result as string);
         
-        // 验证配置文件格式
         if (!configData.version || !configData.accounts || !Array.isArray(configData.accounts)) {
           throw new Error('Invalid configuration file format');
         }
 
         setImportPreview(configData);
-        notification.success({
-          message: t('configFileLoaded', 'Configuration file loaded successfully'),
-          description: t('configFileLoadedDesc', 'Configuration file has been parsed and is ready for import.'),
-          placement: 'topRight',
-          duration: 3,
+        toast({
+          title: t('configFileLoaded'),
+          description: t('configFileLoadedDesc'),
         });
       } catch (error) {
         console.error('Failed to parse config file:', error);
-        message.error(t('configFileInvalid', 'Invalid configuration file'));
+        toast({
+          title: t('configFileInvalid'),
+          variant: 'destructive',
+        });
         setImportPreview(null);
+        setFileName(null);
       }
     };
-    reader.readAsText(file as any);
-    return false; // 阻止自动上传
+    reader.readAsText(file);
   };
 
-  // 执行导入
   const handleImport = async () => {
     if (!importPreview) return;
 
     setImporting(true);
     try {
-      // 导入账号（需要用户重新输入敏感信息）
       const accountsToImport = importPreview.accounts.filter(account => 
         account.globalAPIKey !== '[ENCRYPTED]'
       );
 
       if (accountsToImport.length === 0) {
-        message.warning(t('noValidAccountsToImport', 'No valid accounts to import. Please ensure sensitive data is included.'));
+        toast({
+          title: t('noValidAccountsToImport'),
+        });
         return;
       }
 
-      // 批量添加账号
       for (const accountData of accountsToImport) {
         try {
           await addAccount({
@@ -154,190 +157,139 @@ const ConfigManagement: React.FC<ConfigManagementProps> = ({ visible, onClose })
         }
       }
 
-      // 导入设置
       if (importPreview.settings) {
-        if (importPreview.settings.theme) {
-          localStorage.setItem('theme', importPreview.settings.theme);
-        }
-        if (importPreview.settings.language) {
-          localStorage.setItem('selectedLanguage', importPreview.settings.language);
-        }
-        if (importPreview.settings.formData) {
-          localStorage.setItem('cfWorkerFormData', JSON.stringify(importPreview.settings.formData));
-        }
+        if (importPreview.settings.theme) localStorage.setItem('theme', importPreview.settings.theme);
+        if (importPreview.settings.language) localStorage.setItem('i18nextLng', importPreview.settings.language);
+        if (importPreview.settings.formData) localStorage.setItem('cfWorkerFormData', JSON.stringify(importPreview.settings.formData));
       }
 
-      notification.success({
-        message: t('configImportSuccess', 'Configuration imported successfully'),
-        description: t('configImportSuccessDesc', 'All configuration data has been imported successfully.'),
-        placement: 'topRight',
-        duration: 4,
+      toast({
+        title: t('configImportSuccess'),
+        description: t('configImportSuccessDesc'),
       });
       setImportPreview(null);
+      setFileName(null);
       onClose();
       
-      // 建议用户刷新页面以应用所有设置
-      Modal.confirm({
-        title: t('refreshPageTitle', 'Refresh Page'),
-        content: t('refreshPageContent', 'To apply all imported settings, please refresh the page.'),
-        okText: t('refresh', 'Refresh'),
-        cancelText: t('later', 'Later'),
-        onOk: () => window.location.reload(),
-      });
+      setShowReloadDialog(true);
     } catch (error) {
       console.error('Import failed:', error);
-      message.error(t('configImportFailed', 'Failed to import configuration'));
+      toast({
+        title: t('configImportFailed'),
+        variant: 'destructive',
+      });
     } finally {
       setImporting(false);
     }
   };
 
   return (
-    <Modal
-      title={t('configManagement', 'Configuration Management')}
-      open={visible}
-      onCancel={onClose}
-      width={700}
-      footer={null}
-    >
-      <Space direction="vertical" style={{ width: '100%' }} size="large">
-        {/* 导出配置 */}
-        <Card>
-          <Title level={5}>
-            <ExportOutlined style={{ marginRight: 8 }} />
-            {t('exportConfig', 'Export Configuration')}
-          </Title>
-          <Text type="secondary">
-            {t('exportConfigDescription', 'Export your accounts and settings to a JSON file for backup or migration.')}
-          </Text>
-          <br />
-          <Alert
-            message={t('exportSecurityNote', 'Security Note')}
-            description={t('exportSecurityDescription', 'Sensitive data (API keys) will be marked as [ENCRYPTED] in the export file for security reasons.')}
-            type="warning"
-            showIcon
-            style={{ margin: '16px 0' }}
-          />
-          <Button
-            type="primary"
-            icon={<DownloadOutlined />}
-            onClick={handleExport}
-            disabled={accounts.length === 0}
-          >
-            {t('exportNow', 'Export Now')}
-          </Button>
-          {accounts.length === 0 && (
-            <Text type="secondary" style={{ marginLeft: 8 }}>
-              {t('noAccountsToExport', 'No accounts to export')}
-            </Text>
-          )}
-        </Card>
-
-        <Divider />
-
-        {/* 导入配置 */}
-        <Card>
-          <Title level={5}>
-            <ImportOutlined style={{ marginRight: 8 }} />
-            {t('importConfig', 'Import Configuration')}
-          </Title>
-          <Text type="secondary">
-            {t('importConfigDescription', 'Import accounts and settings from a previously exported JSON file.')}
-          </Text>
-          
-          <div style={{ margin: '16px 0' }}>
-            <Dragger
-              accept=".json"
-              beforeUpload={handleFileUpload}
-              showUploadList={false}
-              style={{ padding: '20px' }}
-            >
-              <p className="ant-upload-drag-icon">
-                <FileTextOutlined />
-              </p>
-              <p className="ant-upload-text">
-                {t('clickOrDragToUpload', 'Click or drag configuration file to this area to upload')}
-              </p>
-              <p className="ant-upload-hint">
-                {t('supportJsonFiles', 'Support for JSON configuration files only')}
-              </p>
-            </Dragger>
-          </div>
-
-          {importPreview && (
-            <Card size="small" style={{ marginTop: 16 }}>
-              <Title level={5}>
-                <WarningOutlined style={{ color: '#faad14', marginRight: 8 }} />
-                {t('importPreview', 'Import Preview')}
-              </Title>
-              <Descriptions size="small" column={1}>
-                <Descriptions.Item label={t('configVersion', 'Version')}>
-                  {importPreview.version}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('exportDate', 'Export Date')}>
-                  {new Date(importPreview.exportDate).toLocaleString()}
-                </Descriptions.Item>
-                <Descriptions.Item label={t('accountsCount', 'Accounts')}>
-                  <Space>
-                    <Tag color="blue">{importPreview.accounts.length} {t('total', 'total')}</Tag>
-                    <Tag color="green">
-                      {importPreview.accounts.filter(acc => acc.globalAPIKey !== '[ENCRYPTED]').length} {t('importable', 'importable')}
-                    </Tag>
-                  </Space>
-                </Descriptions.Item>
-                <Descriptions.Item label={t('settings', 'Settings')}>
-                  <Space>
-                    {importPreview.settings.theme && <Tag>{t('theme', 'Theme')}: {importPreview.settings.theme}</Tag>}
-                    {importPreview.settings.language && <Tag>{t('language', 'Language')}: {importPreview.settings.language}</Tag>}
-                    {importPreview.settings.formData && <Tag>{t('formData', 'Form Data')}</Tag>}
-                  </Space>
-                </Descriptions.Item>
-              </Descriptions>
-              
-              <Alert
-                message={t('importWarning', 'Import Warning')}
-                description={t('importWarningDescription', 'Importing will add new accounts and overwrite current settings. This action cannot be undone.')}
-                type="warning"
-                showIcon
-                style={{ margin: '16px 0' }}
-              />
-              
-              <div style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                justifyContent: 'flex-start'
-              }}>
-                <Button
-                  type="primary"
-                  icon={<UploadOutlined />}
-                  onClick={handleImport}
-                  loading={importing}
-                  style={{
-                    flex: '1 1 auto',
-                    minWidth: '120px',
-                    maxWidth: '160px'
-                  }}
-                >
-                  {t('confirmImport', 'Confirm Import')}
+    <React.Fragment>
+      <Dialog open={visible} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{t('configManagement')}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Download className="h-5 w-5" />
+                  {t('exportConfig')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {t('exportConfigDescription')}
+                </p>
+                <Alert variant="default">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>{t('exportSecurityNote')}</AlertTitle>
+                  <AlertDescription>
+                    {t('exportSecurityDescription')}
+                  </AlertDescription>
+                </Alert>
+                <Button onClick={handleExport} disabled={accounts.length === 0} className="mt-4">
+                  <Download className="mr-2 h-4 w-4" />
+                  {t('exportNow')}
                 </Button>
-                <Button 
-                  onClick={() => setImportPreview(null)}
-                  style={{
-                    flex: '1 1 auto',
-                    minWidth: '80px',
-                    maxWidth: '120px'
-                  }}
-                >
-                  {t('cancel', 'Cancel')}
-                </Button>
-              </div>
+              </CardContent>
             </Card>
-          )}
-        </Card>
-      </Space>
-    </Modal>
+
+            <Separator />
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Upload className="h-5 w-5" />
+                  {t('importConfig')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {t('importConfigDescription')}
+                </p>
+                <div className="flex items-center justify-center w-full">
+                  <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted hover:bg-muted/80">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <FileText className="w-8 h-8 mb-4 text-muted-foreground" />
+                      <p className="mb-2 text-sm text-muted-foreground">
+                        {fileName || t('clickOrDragToUpload')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{t('supportJsonFiles')}</p>
+                    </div>
+                    <input id="dropzone-file" type="file" className="hidden" accept=".json" onChange={handleFileUpload} />
+                  </label>
+                </div>
+
+                {importPreview && (
+                  <Card className="mt-4">
+                    <CardHeader>
+                      <CardTitle className="text-base">{t('importPreview')}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                      <p>{t('configVersion')}: <span className="font-mono">{importPreview.version}</span></p>
+                      <p>{t('exportDate')}: <span className="font-mono">{new Date(importPreview.exportDate).toLocaleString()}</span></p>
+                      <p>{t('accountsCount')}: <span className="font-semibold">{importPreview.accounts.length}</span></p>
+                      <Alert variant="destructive" className="mt-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>{t('importWarning')}</AlertTitle>
+                        <AlertDescription>{t('importWarningDescription')}</AlertDescription>
+                      </Alert>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <DialogFooter>
+            {importPreview && (
+              <Button onClick={handleImport} disabled={importing}>
+                {importing ? t('importing') : t('confirmImport')}
+              </Button>
+            )}
+            <DialogClose asChild>
+              <Button variant="outline">{t('close')}</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog open={showReloadDialog} onOpenChange={setShowReloadDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('importComplete')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('refreshPageContent')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t('later')}</AlertDialogCancel>
+              <AlertDialogAction onClick={() => window.location.reload()}>{t('refreshNow')}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+    </React.Fragment>
   );
 };
 
-export default ConfigManagement; 
+export default ConfigManagement;

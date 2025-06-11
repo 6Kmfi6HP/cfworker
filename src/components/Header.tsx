@@ -1,16 +1,30 @@
 import React from 'react';
-import { Button, Modal, Image, Space, Tooltip, Dropdown, MenuProps } from 'antd';
-import { SunOutlined, MoonOutlined, GlobalOutlined, SettingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { Sun, Moon, Globe, Settings } from 'lucide-react';
 import { useTheme } from '../ThemeContext';
 import { useAccount } from '../contexts/AccountContext';
 import AccountSelector from './AccountSelector';
 import img from '../getGlobalAPIKey.png';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface HeaderProps {
   selectedLanguage: string;
   onLanguageChange: (language: string) => void;
   onShowAccountManagement: () => void;
+  onShowAddAccount: () => void;
   showApiKeyModal: boolean;
   onCloseApiKeyModal: () => void;
   onShowApiKeyModal: () => void;
@@ -20,276 +34,167 @@ const Header: React.FC<HeaderProps> = ({
   selectedLanguage,
   onLanguageChange,
   onShowAccountManagement,
+  onShowAddAccount,
   showApiKeyModal,
   onCloseApiKeyModal,
-  onShowApiKeyModal
+  onShowApiKeyModal,
 }) => {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   const { currentAccount } = useAccount();
 
-  const languageMenuItems: MenuProps['items'] = [
+  const languageMenuItems = [
     {
       key: 'en',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>🇺🇸</span>
-          <span>English</span>
-          {selectedLanguage === 'en' && <span style={{ color: '#1890ff' }}>✓</span>}
-        </div>
-      ),
-      onClick: () => onLanguageChange('en'),
+      label: 'English',
+      icon: '🇺🇸',
     },
     {
       key: 'zh',
-      label: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>🇨🇳</span>
-          <span>中文</span>
-          {selectedLanguage === 'zh' && <span style={{ color: '#1890ff' }}>✓</span>}
-        </div>
-      ),
-      onClick: () => onLanguageChange('zh'),
+      label: '中文',
+      icon: '🇨🇳',
     },
   ];
 
-  // 响应式样式
-  const headerStyles = {
-    container: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: 'clamp(16px, 4vw, 24px)',
-      padding: 'clamp(16px, 4vw, 24px) clamp(12px, 3vw, 20px)',
-      position: 'relative' as const,
-      maxWidth: '100%',
-      overflow: 'hidden'
-    },
-    topBar: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      flexWrap: 'wrap' as const,
-      gap: 'clamp(12px, 3vw, 16px)',
-      minHeight: 'clamp(40px, 8vw, 60px)'
-    },
-    title: {
-      margin: 0,
-      fontSize: 'clamp(18px, 5vw, 32px)',
-      fontWeight: 600,
-      background: 'linear-gradient(135deg, #1890ff, #722ed1)',
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-      lineHeight: 1.2,
-      wordBreak: 'break-word' as const,
-      flex: '1 1 auto',
-      minWidth: 0
-    },
-    controlsContainer: {
-      flexShrink: 0,
-      display: 'flex',
-      alignItems: 'center'
-    },
-    controlButton: {
-      borderRadius: 'clamp(6px, 2vw, 8px)',
-      width: 'clamp(36px, 8vw, 40px)',
-      height: 'clamp(36px, 8vw, 40px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 'clamp(14px, 3.5vw, 16px)',
-      backgroundColor: theme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
-      border: '1px solid rgba(255, 255, 255, 0.15)',
-      minWidth: 'clamp(36px, 8vw, 40px)',
-      padding: 0
-    },
-    accountSelectorContainer: {
-      width: '100%',
-      overflow: 'hidden'
-    },
-    statusCard: {
-      padding: 'clamp(16px, 4vw, 20px)',
-      borderRadius: 'clamp(8px, 2vw, 12px)',
-      backgroundColor: theme === 'light' ? 'rgba(24, 144, 255, 0.05)' : 'rgba(24, 144, 255, 0.1)',
-      border: `1px solid ${theme === 'light' ? 'rgba(24, 144, 255, 0.15)' : 'rgba(24, 144, 255, 0.2)'}`,
-      lineHeight: 1.6,
-      fontSize: 'clamp(14px, 3.5vw, 16px)'
-    },
-    statusTitle: {
-      fontSize: 'clamp(14px, 3.5vw, 16px)',
-      fontWeight: 500,
-      marginBottom: 'clamp(6px, 2vw, 8px)',
-      wordBreak: 'break-word' as const
-    },
-    statusDescription: {
-      fontSize: 'clamp(12px, 3vw, 14px)',
-      opacity: 0.8,
-      lineHeight: 1.5
-    },
-    warningTitle: {
-      fontSize: 'clamp(14px, 3.5vw, 16px)',
-      fontWeight: 500,
-      marginBottom: 'clamp(8px, 2vw, 12px)',
-      color: theme === 'light' ? '#fa8c16' : '#ffc53d',
-      wordBreak: 'break-word' as const
-    },
-    linkButton: {
-      padding: 0,
-      height: 'auto',
-      fontSize: 'clamp(12px, 3vw, 14px)',
-      textAlign: 'left' as const,
-      wordBreak: 'break-word' as const
-    }
-  };
-
   return (
     <>
-      <div className="header" style={headerStyles.container}>
+      <header className="flex flex-col gap-4 md:gap-6 p-4 md:p-6 relative max-w-full overflow-hidden">
         {/* Top Bar with Title and Controls */}
-        <div style={headerStyles.topBar}>
+        <div className="flex justify-between items-center flex-wrap gap-4 min-h-[40px] md:min-h-[60px]">
           {/* Title */}
-          <h1 style={headerStyles.title}>
+          <h1 className="text-xl md:text-3xl font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-transparent bg-clip-text break-words flex-1 min-w-0">
             {t('title')}
           </h1>
 
           {/* Controls */}
-          <div style={headerStyles.controlsContainer}>
-            <Space size={window.innerWidth < 768 ? 'small' : 'middle'}>
+          <div className="flex-shrink-0 flex items-center">
+            <div className="flex items-center gap-2 md:gap-4">
               {/* Theme Toggle */}
-              <Tooltip 
-                title={theme === 'light' ? t('switchToDark', 'Switch to Dark Mode') : t('switchToLight', 'Switch to Light Mode')}
-                placement="bottom"
-              >
-                <Button
-                  type="text"
-                  icon={theme === 'light' ? <MoonOutlined /> : <SunOutlined />}
-                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  style={headerStyles.controlButton}
-                />
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                    >
+                      {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{theme === 'light' ? t('switchToDark') : t('switchToLight')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {/* Language Selector */}
-              <Dropdown
-                menu={{ items: languageMenuItems }}
-                placement="bottomRight"
-                trigger={['click']}
-                overlayStyle={{
-                  minWidth: 'clamp(120px, 30vw, 160px)'
-                }}
-              >
-                <Tooltip title={t('changeLanguage', 'Change Language')} placement="bottom">
-                  <Button
-                    type="text"
-                    icon={<GlobalOutlined />}
-                    style={headerStyles.controlButton}
-                  />
-                </Tooltip>
-              </Dropdown>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Globe className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {languageMenuItems.map(item => (
+                    <DropdownMenuItem key={item.key} onClick={() => onLanguageChange(item.key)}>
+                      <span className="mr-2">{item.icon}</span>
+                      <span>{item.label}</span>
+                      {selectedLanguage === item.key && <span className="ml-auto text-blue-500">✓</span>}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/* Settings */}
-              <Tooltip title={t('accountManagement', 'Account Management')} placement="bottom">
-                <Button
-                  type="text"
-                  icon={<SettingOutlined />}
-                  onClick={onShowAccountManagement}
-                  style={headerStyles.controlButton}
-                />
-              </Tooltip>
-            </Space>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" onClick={onShowAccountManagement}>
+                      <Settings className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('accountManagement')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </div>
         
         {/* Account Selector */}
-        <div style={headerStyles.accountSelectorContainer}>
+        <div className="w-full overflow-hidden">
           <AccountSelector
             onManageAccounts={onShowAccountManagement}
-            onAddAccount={onShowAccountManagement}
+            onAddAccount={onShowAddAccount}
           />
         </div>
         
         {/* Account Status and Instructions */}
-        <div style={headerStyles.statusCard}>
+        <div className="p-4 md:p-5 rounded-lg bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/10 dark:border-blue-500/20 text-sm md:text-base">
           {currentAccount ? (
             <div>
-              <div style={{
-                ...headerStyles.statusTitle,
-                color: theme === 'light' ? '#1890ff' : '#69c0ff'
-              }}>
-                {t('currentAccountDescription', 'Using account:')} <strong>{currentAccount.name || currentAccount.email}</strong>
+              <div className="font-medium text-blue-600 dark:text-blue-400">
+                {t('currentAccountDescription')} <strong>{currentAccount.name || currentAccount.email}</strong>
               </div>
-              <div style={headerStyles.statusDescription}>
-                {t('accountManagementDescription', 'You can manage your accounts using the selector above.')}
+              <div className="text-muted-foreground text-xs md:text-sm">
+                {t('accountManagementDescription')}
               </div>
             </div>
           ) : (
             <div>
-              <div style={headerStyles.warningTitle}>
-                {t('noAccountSelected', 'No account selected. Please add and select an account to continue.')}
+              <div className="font-medium text-amber-600 dark:text-amber-400">
+                {t('noAccountSelected')}
               </div>
-              <Space 
-                direction={window.innerWidth < 480 ? 'vertical' : 'horizontal'} 
-                size="small"
-                style={{ width: '100%' }}
-              >
+              <div className="flex flex-col sm:flex-row sm:items-center gap-x-4 gap-y-1 mt-2">
                 <Button 
-                  type="link" 
+                  variant="link"
+                  className="p-0 h-auto text-xs md:text-sm text-left"
                   onClick={onShowApiKeyModal}
-                  style={headerStyles.linkButton}
                 >
                   {t('howToGetApiKey')}
                 </Button>
                 <Button 
-                  type="link"
-                  href="https://youtu.be/PZMbH7awZRE?si=UxohdialRXq8dL2F"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={headerStyles.linkButton}
+                  variant="link"
+                  asChild
+                  className="p-0 h-auto text-xs md:text-sm text-left"
                 >
-                  {t('Towatchvideo')}
+                  <a
+                    href="https://youtu.be/PZMbH7awZRE?si=UxohdialRXq8dL2F"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t('Towatchvideo')}
+                  </a>
                 </Button>
-              </Space>
+              </div>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
       {/* API Key Instructions Modal */}
-      <Modal
-        open={showApiKeyModal}
-        footer={null}
-        onCancel={onCloseApiKeyModal}
-        width={Math.min(800, window.innerWidth * 0.9)}
-        style={{ 
-          top: window.innerWidth < 768 ? 10 : 20,
-          maxWidth: '95vw'
-        }}
-        styles={{
-          body: {
-            padding: window.innerWidth < 768 ? '16px' : '24px'
-          }
-        }}
-      >
-        <Image 
-          src={img} 
-          alt="" 
-          style={{ 
-            width: '100%',
-            maxWidth: '100%',
-            height: 'auto'
-          }} 
-        />
-        <div style={{ 
-          marginTop: 'clamp(12px, 3vw, 16px)', 
-          lineHeight: 1.6,
-          fontSize: 'clamp(12px, 3vw, 14px)'
-        }}>
-          <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions1') }} />
-          <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions2') }} />
-          <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions3') }} />
-        </div>
-      </Modal>
+      <Dialog open={showApiKeyModal} onOpenChange={onCloseApiKeyModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{t('howToGetApiKey')}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <img 
+              src={img} 
+              alt="API Key Instructions" 
+              className="w-full h-auto rounded-md border"
+            />
+            <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions1') }} />
+              <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions2') }} />
+              <div dangerouslySetInnerHTML={{ __html: t('apiKeyInstructions3') }} />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
-export default Header; 
+export default Header;

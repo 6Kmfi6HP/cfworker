@@ -88,7 +88,7 @@ class EncryptedStorage {
               ['encrypt', 'decrypt']
             );
             resolve(key);
-          } catch (error) {
+          } catch {
             resolve(null);
           }
         } else {
@@ -195,10 +195,11 @@ class EncryptedStorage {
             };
             
             // Remove encryption artifacts
-            delete (account as any).encryptedData;
-            delete (account as any).iv;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { encryptedData: _encryptedData, iv: _iv, ...cleanAccount } = account as AccountCredentials & { encryptedData?: unknown; iv?: unknown };
+            const finalAccount = cleanAccount as AccountCredentials;
             
-            resolve(account);
+            resolve(finalAccount);
           } catch (error) {
             reject(error);
           }
@@ -221,7 +222,7 @@ class EncryptedStorage {
       request.onsuccess = async () => {
         try {
           const accounts = await Promise.all(
-            request.result.map(async (encryptedAccount: any) => {
+            request.result.map(async (encryptedAccount: unknown) => {
               const encrypted = new Uint8Array(encryptedAccount.encryptedData).buffer;
               const iv = new Uint8Array(encryptedAccount.iv);
               
@@ -235,10 +236,11 @@ class EncryptedStorage {
               };
               
               // Remove encryption artifacts
-              delete (account as any).encryptedData;
-              delete (account as any).iv;
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { encryptedData: _encryptedData, iv: _iv, ...cleanAccount } = account as AccountCredentials & { encryptedData?: unknown; iv?: unknown };
+              const finalAccount = cleanAccount as AccountCredentials;
               
-              return account;
+              return finalAccount;
             })
           );
           
@@ -268,4 +270,4 @@ class EncryptedStorage {
   }
 }
 
-export const encryptedStorage = new EncryptedStorage(); 
+export const encryptedStorage = new EncryptedStorage();

@@ -1,11 +1,16 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import './index.css'
 import App from './App.tsx'
+import { Toaster } from "@/components/ui/toaster"
+import { HelmetProvider } from 'react-helmet-async';
 
-import './app.scss';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+      <Toaster />
+    </HelmetProvider>
   </React.StrictMode>,
 )
