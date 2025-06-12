@@ -385,3 +385,151 @@ body.dark .ant-modal-footer .ant-btn-primary:hover {
   background-color: #40a9ff;
   border-color: #40a9ff;
 }
+
+/* Dark Mode 修复 - 解决用户反馈的显示问题 */
+
+/* 1. 修复版权信息不可见问题 */
+body.dark .footer {
+  border-top-color: #434343;
+}
+
+body.dark .footer .footer-content {
+  color: #9CA3AF !important;
+}
+
+body.dark .footer .footer-content p {
+  color: #9CA3AF !important;
+}
+
+/* 2. 修复表单标签对比度不足问题 */
+body.dark .ant-form-item-label > label {
+  color: #E5E7EB !important;
+}
+
+body.dark label {
+  color: #E5E7EB !important;
+}
+
+/* 3. 修复输入框占位符颜色过浅问题 */
+body.dark .ant-input::placeholder {
+  color: #6B7280 !important;
+}
+
+body.dark input::placeholder {
+  color: #6B7280 !important;
+}
+
+body.dark .ant-input-affix-wrapper input::placeholder {
+  color: #6B7280 !important;
+}
+
+/* 4. 修复输入框背景色和边框问题 */
+body.dark .ant-input {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+  color: #F9FAFB !important;
+}
+
+body.dark .ant-input-affix-wrapper {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+}
+
+body.dark .ant-input-affix-wrapper input {
+  background-color: transparent !important;
+  color: #F9FAFB !important;
+}
+
+/* 5. 修复警告文字对比度 */
+body.dark .warning-text,
+body.dark .ant-alert-warning {
+  color: #FCD34D !important;
+}
+
+/* 6. 修复一般文字颜色 */
+body.dark p {
+  color: #E5E7EB;
+}
+
+body.dark .ant-typography {
+  color: #E5E7EB !important;
+}
+
+/* 7. 修复链接颜色在深色模式下的显示 */
+body.dark a {
+  color: #60A5FA !important;
+}
+
+body.dark a:hover {
+  color: #93C5FD !important;
+}
+
+/* 8. 修复选择框和下拉框样式 */
+body.dark .ant-select {
+  color: #F9FAFB !important;
+}
+
+body.dark .ant-select-selector {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+  color: #F9FAFB !important;
+}
+
+body.dark .ant-select-selection-placeholder {
+  color: #6B7280 !important;
+}
+
+/* 9. 修复开关组件样式 */
+body.dark .ant-switch {
+  background-color: #4B5563;
+}
+
+body.dark .ant-switch-checked {
+  background-color: #3B82F6;
+}
+
+/* 10. 修复提示信息区域背景 */
+body.dark .ant-alert {
+  background-color: #374151 !important;
+  border-color: #4B5563 !important;
+  color: #E5E7EB !important;
+}
+
+/* 11. 确保所有文本在深色模式下可读 */
+body.dark * {
+  border-color: #4B5563;
+}
+
+body.dark .ant-divider {
+  border-color: #4B5563;
+}
+
+/* 12. 修复表格和列表项样式 */
+body.dark .ant-table {
+  background-color: #374151;
+  color: #E5E7EB;
+}
+
+body.dark .ant-table-thead > tr > th {
+  background-color: #4B5563;
+  color: #E5E7EB;
+  border-color: #6B7280;
+}
+
+body.dark .ant-table-tbody > tr > td {
+  border-color: #6B7280;
+  color: #E5E7EB;
+}
+
+/* 13. 修复卡片组件样式 */
+body.dark .ant-card {
+  background-color: #374151;
+  border-color: #4B5563;
+  color: #E5E7EB;
+}
+
+body.dark .ant-card-head {
+  background-color: #4B5563;
+  border-color: #6B7280;
+  color: #E5E7EB;
+}

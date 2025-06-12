@@ -202,9 +202,18 @@ const Header: React.FC<HeaderProps> = ({
         {/* Account Selector */}
         <div style={headerStyles.accountSelectorContainer}>
           <AccountSelector
-            onManageAccounts={onShowAccountManagement}
-            onAddAccount={onShowAccountManagement}
-          />
+          onManageAccounts={onShowAccountManagement}
+          onAddAccount={() => {
+            onShowAccountManagement();
+            // 延迟触发添加账号操作，确保弹窗已打开
+            setTimeout(() => {
+              const addButton = document.querySelector('.account-toolbar .ant-btn-primary');
+              if (addButton) {
+                (addButton as HTMLElement).click();
+              }
+            }, 100);
+          }}
+        />
         </div>
         
         {/* Account Status and Instructions */}
@@ -292,4 +301,4 @@ const Header: React.FC<HeaderProps> = ({
   );
 };
 
-export default Header; 
+export default Header;
