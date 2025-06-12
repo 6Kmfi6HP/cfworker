@@ -1,0 +1,172 @@
+# Product Requirements Document: Antd to Shadcn UI Migration
+
+## Project Overview
+Migrate the existing React application from Ant Design (antd) components to shadcn/ui components while maintaining all existing functionality and improving the overall user experience.
+
+## Objectives
+- Replace all Ant Design components with shadcn/ui equivalents
+- Maintain existing functionality without any feature changes
+- Improve UI consistency and modern design aesthetics
+- Ensure responsive design is preserved
+- Maintain accessibility standards
+
+## Current Component Usage Analysis
+Based on codebase analysis, the following antd components are currently used:
+
+### Core Components
+- Button (used in multiple files)
+- Form, Form.Item (WorkerForm, AccountManagement, BulkWorkerDeployment)
+- Input (text inputs across forms)
+- Select (dropdowns and selectors)
+- Modal (dialogs and popups)
+- Tooltip (hover information)
+- Switch (toggle controls)
+- Space (layout spacing)
+- Collapse (collapsible sections)
+
+### Data Display
+- Table (data tables in BulkWorkerDeployment)
+- Tag (status indicators)
+- Typography (Text, Title)
+- Card (content containers)
+- Avatar (user avatars)
+- Badge (notification badges)
+- Progress (progress indicators)
+- Descriptions (key-value pairs)
+
+### Feedback Components
+- message (toast notifications)
+- notification (system notifications)
+- Alert (warning/info messages)
+- Skeleton (loading states)
+- Empty (empty states)
+
+### Navigation
+- Dropdown (dropdown menus)
+- Menu (navigation menus)
+- Tabs (tab navigation)
+- Pagination (page navigation)
+
+### Layout
+- Row, Col (grid system)
+- Divider (section separators)
+- Drawer (side panels)
+
+### Data Entry
+- Upload, Dragger (file uploads)
+- Popconfirm (confirmation dialogs)
+
+### Icons
+- All @ant-design/icons need to be replaced with Lucide React icons
+
+## Technical Requirements
+
+### Setup Requirements
+1. Install and configure shadcn/ui for Vite
+2. Install Tailwind CSS
+3. Configure path aliases
+4. Remove antd dependencies
+
+### File Modification Plan
+
+#### Package Configuration
+- Remove antd from dependencies
+- Add shadcn/ui and required dependencies
+- Add Tailwind CSS configuration
+
+#### Core Files to Modify
+1. **WorkerForm.tsx** - Main form component with extensive antd usage
+2. **BulkWorkerDeployment.tsx** - Complex component with tables, modals, forms
+3. **AccountManagement.tsx** - User management interface
+4. **ConfigManagement.tsx** - Configuration interface
+5. **Header.tsx** - Navigation header
+6. **AccountSelector.tsx** - Account selection component
+7. **NodeOutput.tsx** - Output display component
+8. **Footer.tsx** - Footer component
+
+#### Service Files
+- **apiClient.ts** - Replace message notifications
+- **AccountContext.tsx** - Replace notification system
+
+#### Styling
+- Update CSS modules to work with Tailwind
+- Ensure responsive design is maintained
+- Preserve existing color schemes and themes
+
+### Component Mapping Strategy
+
+#### Form Components
+- antd Form → shadcn Form
+- antd Input → shadcn Input
+- antd Select → shadcn Select
+- antd Switch → shadcn Switch
+- antd Button → shadcn Button
+
+#### Layout Components
+- antd Space → Tailwind flex/grid utilities
+- antd Row/Col → Tailwind grid system
+- antd Divider → shadcn Separator
+
+#### Feedback Components
+- antd message → shadcn Toast
+- antd notification → shadcn Toast with variants
+- antd Modal → shadcn Dialog
+- antd Alert → shadcn Alert
+
+#### Data Display
+- antd Table → shadcn Table
+- antd Card → shadcn Card
+- antd Tag → shadcn Badge
+- antd Avatar → shadcn Avatar
+- antd Tooltip → shadcn Tooltip
+
+### Quality Assurance
+- Ensure all existing functionality works identically
+- Verify responsive design on all screen sizes
+- Test all form submissions and validations
+- Verify all modals and dialogs work correctly
+- Test notification systems
+- Ensure accessibility is maintained
+
+### Success Criteria
+- Zero antd dependencies remaining
+- All components render correctly
+- All functionality preserved
+- Improved visual consistency
+- Maintained responsive design
+- No breaking changes to user workflows
+
+## Implementation Phases
+
+### Phase 1: Setup and Configuration
+- Install shadcn/ui and Tailwind CSS
+- Configure build tools and path aliases
+- Set up component library structure
+
+### Phase 2: Core Component Migration
+- Migrate basic components (Button, Input, etc.)
+- Update form components
+- Replace layout components
+
+### Phase 3: Complex Component Migration
+- Migrate table components
+- Update modal and dialog systems
+- Replace notification systems
+
+### Phase 4: Styling and Polish
+- Update CSS modules
+- Ensure responsive design
+- Fine-tune visual consistency
+
+### Phase 5: Testing and Validation
+- Comprehensive functionality testing
+- Cross-browser compatibility
+- Responsive design verification
+- Performance optimization
+
+## Constraints
+- No functional changes allowed
+- Must maintain existing user workflows
+- Preserve all existing features
+- Maintain current responsive behavior
+- Keep existing color schemes and branding

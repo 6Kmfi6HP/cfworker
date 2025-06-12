@@ -61,7 +61,7 @@ function testProxy() {
       try {
         const jsonData = JSON.parse(data);
         console.log(JSON.stringify(jsonData, null, 2));
-      } catch (e) {
+      } catch (_e) {
         console.log(data);
       }
       
@@ -126,4 +126,4 @@ console.log('📝 Testing domain: ' + PAGES_DOMAIN);
 console.log('');
 
 // Start testing
-testOptions(); 
+testOptions();

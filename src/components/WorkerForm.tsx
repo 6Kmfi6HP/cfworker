@@ -1,32 +1,43 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Switch } from "./ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import {
-  Button,
-  Collapse,
-  Form,
-  Input,
-  Tooltip,
-  Switch,
-  message,
-  Modal,
-  notification,
-} from "antd";
-import { 
-  CloudUploadOutlined, 
-  ThunderboltOutlined, 
-  ReloadOutlined, 
-  DeleteOutlined, 
-  SettingOutlined,
-  GlobalOutlined,
-  UpOutlined,
-  DownOutlined
-} from "@ant-design/icons";
+  ChevronDownIcon,
+  BoltIcon,
+  Cog6ToothIcon,
+  TrashIcon,
+  ArrowPathIcon,
+  ChevronUpIcon,
+  ChevronDownIcon as ChevronDownIconSolid,
+  GlobeAltIcon
+} from '@heroicons/react/24/outline';
+import { notification } from "../utils/notifications";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from 'react-i18next';
 import { useAccount } from '../contexts/AccountContext';
 import { apiClient } from '../services/apiClient';
 import { API_ENDPOINT, MAX_PROXY_IPS, STATS_API_ENDPOINT, WORKER_NAME_WORDS } from '../utils/constants';
 import { getCityToCountry } from '../utils/cityToCountry';
-import styles from './WorkerForm.module.css';
+
+const formSchema = z.object({
+  workerName: z.string().optional(),
+  uuid: z.string().optional(),
+  nodeName: z.string().optional(),
+  proxyIp: z.string().optional(),
+  socks5Proxy: z.string().optional(),
+  socks5Relay: z.boolean().optional(),
+  customDomain: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface WorkerFormProps {
   onWorkerCreated: (node: string, url: string) => void;
@@ -39,7 +50,18 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
   onShowBulkDeployment,
   onShowConfigManagement
 }) => {
-  const [form] = Form.useForm();
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      workerName: '',
+      uuid: '',
+      nodeName: '',
+      proxyIp: '',
+      socks5Proxy: '',
+      socks5Relay: false,
+      customDomain: '',
+    },
+  });
   const [loading, setLoading] = useState(false);
   const [showIpModal, setShowIpModal] = useState(false);
   const [fetchingIps, setFetchingIps] = useState(false);
@@ -59,7 +81,7 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
     const savedFormData = localStorage.getItem('cfWorkerFormData');
     if (savedFormData) {
       const parsedData = JSON.parse(savedFormData);
-      form.setFieldsValue(parsedData);
+      form.reset(parsedData);
       
       // Set the state variables from saved data
       if (parsedData.proxyIp) {
@@ -80,11 +102,7 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
     fetchCountryData();
   }, [form]);
 
-  // Save form data in real-time
-  const saveFormData = useCallback(() => {
-    const currentValues = form.getFieldsValue();
-    localStorage.setItem('cfWorkerFormData', JSON.stringify(currentValues));
-  }, [form]);
+
 
   // Fetch country data
   const fetchCountryData = async () => {
@@ -101,7 +119,7 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       const countryMap: {[key: string]: {count: number, name: string, emoji: string}} = {};
       
       Object.entries(byCity).forEach(([city, count]) => {
-        const cityInfo = getCityToCountry(t)[city as keyof ReturnType<typeof getCityToCountry>];
+        const cityInfo = getCityToCountry((key: string, fallback?: string) => t(key, fallback || ''))[city as keyof ReturnType<typeof getCityToCountry>];
         if (cityInfo) {
           const { code, name, emoji } = cityInfo;
           if (!countryMap[code]) {
@@ -124,7 +142,10 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       
     } catch (error) {
       console.error('Error fetching country data:', error);
-      message.error(t('fetchedIpsFail', { error: error instanceof Error ? error.message : String(error) }));
+      notification.error({
+        message: t('error'),
+        description: t('fetchedIpsFail', { error: error instanceof Error ? error.message : String(error) })
+      });
       
       setCountryOptions([
         { label: `🇺🇸 ${t('countries.usa', '美国')}`, value: 'US', count: 0 },
@@ -139,17 +160,18 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
   };
 
   // Create worker
-  const createWorker = useCallback(async () => {
+  const createWorker = useCallback(async (formData: FormData) => {
     const credentials = getCurrentCredentials();
     if (!credentials) {
-      message.error(t('pleaseSelectAccount', 'Please select an account first'));
+      notification.error({
+        message: t('error'),
+        description: t('pleaseSelectAccount', 'Please select an account first')
+      });
       return;
     }
 
     setLoading(true);
     try {
-      const formData = await form.validateFields();
-      
       const requestData = {
         ...formData,
         email: credentials.email,
@@ -165,26 +187,32 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       onWorkerCreated(data.node, data.url);
       notification.success({
         message: t('workerCreationSuccess'),
-        description: t('workerCreationSuccessDesc', 'Worker node has been successfully created and deployed.'),
-        placement: 'topRight',
-        duration: 4.5,
+        description: t('workerCreationSuccessDesc', 'Worker node has been successfully created and deployed.')
       });
     } catch (error: any) {
       console.error("创建 Worker 节点失败:", error);
       if (error.response?.data?.message) {
-        message.error(t('workerCreationFail') + ": " + error.response.data.error);
+        notification.error({
+          message: t('error'),
+          description: t('workerCreationFail') + ": " + error.response.data.error
+        });
       } else {
-        message.error(t('workerCreationFail') + ": " + (error instanceof Error ? error.message : String(error)));
+        notification.error({
+        message: t('error'),
+        description: t('workerCreationFail') + ": " + (error instanceof Error ? error.message : String(error))
+      });
       }
     }
 
     setLoading(false);
-  }, [form, t, getCurrentCredentials, onWorkerCreated]);
+  }, [t, getCurrentCredentials, onWorkerCreated]);
+
+  const onSubmit = form.handleSubmit(createWorker);
 
   // Generate UUID
   const generateUUID = () => {
     const newUUID = uuidv4();
-    form.setFieldsValue({ uuid: newUUID });
+    form.setValue('uuid', newUUID);
   };
 
   // Generate worker name
@@ -193,33 +221,31 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
     const randomWord2 = WORKER_NAME_WORDS[Math.floor(Math.random() * WORKER_NAME_WORDS.length)];
     const randomNumber = Math.floor(Math.random() * 1000);
     const newWorkerName = `${randomWord1}-${randomWord2}-${randomNumber}`;
-    form.setFieldsValue({ workerName: newWorkerName });
+    form.setValue('workerName', newWorkerName);
   };
 
   // Clear saved data
   const clearSavedData = () => {
     localStorage.removeItem('cfWorkerFormData');
-    form.resetFields();
+    form.reset();
     setProxyIp('');
     setSocks5Proxy('');
     setProxyIpCount(0);
     setSocks5RelayEnabled(false);
     notification.success({
       message: t('dataClearedSuccess'),
-      description: t('dataClearedSuccessDesc', 'All saved form data has been cleared successfully.'),
-      placement: 'topRight',
-      duration: 3,
+      description: t('dataClearedSuccessDesc', 'All saved form data has been cleared successfully.')
     });
   };
 
   // Handle proxy IP change
   const handleProxyIpChange = (value: string) => {
     setProxyIp(value);
-    form.setFieldValue('proxyIp', value);
+    form.setValue('proxyIp', value);
     const ips = value ? value.split(',').filter(ip => ip.trim() !== '').length : 0;
     setProxyIpCount(ips);
     if (value && !socks5RelayEnabled) {
-      form.setFieldValue('socks5Proxy', '');
+      form.setValue('socks5Proxy', '');
       setSocks5Proxy('');
     }
   };
@@ -227,9 +253,9 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
   // Handle socks5 proxy change
   const handleSocks5ProxyChange = (value: string) => {
     setSocks5Proxy(value);
-    form.setFieldValue('socks5Proxy', value);
+    form.setValue('socks5Proxy', value);
     if (value && !socks5RelayEnabled) {
-      form.setFieldValue('proxyIp', '');
+      form.setValue('proxyIp', '');
       setProxyIp('');
       setProxyIpCount(0);
     }
@@ -261,313 +287,450 @@ const WorkerForm: React.FC<WorkerFormProps> = ({
       const newValue = formattedIps;
       
       setProxyIp(newValue);
-      form.setFieldValue('proxyIp', newValue);
+      form.setValue('proxyIp', newValue);
       setProxyIpCount(limitedData.length);
       
       notification.success({
         message: t('fetchedIpsSuccess', { count: limitedData.length, country: countryCode }),
-        description: t('fetchedIpsSuccessDesc', 'Proxy IPs have been automatically filled in the form.'),
-        placement: 'topRight',
-        duration: 4,
+        description: t('fetchedIpsSuccessDesc', 'Proxy IPs have been automatically filled in the form.')
       });
       setShowIpModal(false);
     } catch (error) {
       console.error('Error fetching IPs:', error);
-      message.error(t('fetchedIpsFail', { error: error instanceof Error ? error.message : String(error) }));
+      notification.error({
+        message: t('error'),
+        description: t('fetchedIpsFail', { error: error instanceof Error ? error.message : String(error) })
+      });
     } finally {
       setFetchingIps(false);
     }
   };
 
   return (
-    <div className={styles.workerFormContainer}>
-      <Form
-        form={form}
-        layout="vertical"
-        onValuesChange={saveFormData}
-      >
-        <Collapse
-          style={{ marginBottom: 24 }}
-          items={[
-            {
-              key: "1",
-              label: t('additionalParams'),
-              children: (
-                <>
-                  <Form.Item
-                    label={
-                      <Tooltip title={t('workerNameTooltip')}>
-                        {t('workerName')}
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-6">
+        <Collapsible defaultOpen className="mb-6">
+          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+            <span className="font-medium">{t('additionalParams')}</span>
+            <ChevronDownIcon className="h-4 w-4 transition-transform" />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="p-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="workerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('workerName')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('workerNameTooltip')}</p>
+                        </TooltipContent>
                       </Tooltip>
-                    }
-                    name={"workerName"}
-                  >
-                    <Input
-                      onChange={(e) => {
-                        form.setFieldsValue({ nodeName: e.target.value });
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          form.setValue('nodeName', e.target.value);
+                        }}
+                      />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={generateWorkerName}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t('workerNameTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="uuid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('uuid')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('uuidTooltip')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input {...field} value={field.value || ''} />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={generateUUID}
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                            >
+                              <ArrowPathIcon className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t('uuidTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="nodeName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('nodeName')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('nodeNameTooltip')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || ''} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="socks5Relay"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('socks5Relay')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('socks5RelayTooltip')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        setSocks5RelayEnabled(checked);
                       }}
-                      suffix={
-                        <Tooltip title={t('workerNameTooltip')}>
-                          <Button
-                            type="text"
-                            icon={<ReloadOutlined />}
-                            onClick={generateWorkerName}
-                            style={{ border: 'none', padding: 0 }}
-                          />
-                        </Tooltip>
-                      }
                     />
-                  </Form.Item>
-                  <Form.Item
-                    label={<Tooltip title={t('uuidTooltip')}>{t('uuid')}</Tooltip>}
-                    name={"uuid"}
-                  >
-                    <Input
-                      suffix={
-                        <Tooltip title={t('uuidTooltip')}>
-                          <Button
-                            type="text"
-                            icon={<ReloadOutlined />}
-                            onClick={generateUUID}
-                            style={{ border: 'none', padding: 0 }}
-                          />
-                        </Tooltip>
-                      }
-                    />
-                  </Form.Item>
-                  <Form.Item
-                    label={<Tooltip title={t('nodeNameTooltip')}>{t('nodeName')}</Tooltip>}
-                    name={"nodeName"}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    label={<Tooltip title={t('socks5RelayTooltip')}>{t('socks5Relay')}</Tooltip>}
-                    name="socks5Relay"
-                    valuePropName="checked"
-                  >
-                    <Switch onChange={(checked) => setSocks5RelayEnabled(checked)} />
-                  </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                  <Form.Item
-                    noStyle
-                    shouldUpdate={(prevValues, currentValues) => prevValues.socks5Relay !== currentValues.socks5Relay}
-                  >
-                    {({ getFieldValue }) =>
-                      !getFieldValue('socks5Relay') && (
-                        <Form.Item
-                          label={<Tooltip title={t('proxyIpTooltip')}>{t('proxyIp')}{proxyIpCount > 0 ? ` (${proxyIpCount})` : ''}</Tooltip>}
-                          name="proxyIp"
+            {!form.watch('socks5Relay') && (
+              <FormField
+                control={form.control}
+                name="proxyIp"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{t('proxyIp')}{proxyIpCount > 0 ? ` (${proxyIpCount})` : ''}</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{t('proxyIpTooltip')}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <FormControl>
+                      <div className="flex">
+                        <Input
+                          {...field}
+                          value={field.value || ''}
+                          placeholder={!!socks5Proxy && !socks5RelayEnabled
+                            ? "Proxy IP is disabled when using Socks5 proxy" 
+                            : "Example: cdn.xn--b6gac.eu.org:443 or 1.1.1.1:7443,2.2.2.2:443,[2a01:4f8:c2c:123f:64:5:6810:c55a]"
+                          }
+                          onChange={(e) => {
+                            field.onChange(e.target.value);
+                            handleProxyIpChange(e.target.value);
+                          }}
+                          disabled={socks5RelayEnabled ? false : (!!socks5Proxy)}
+                          className="rounded-r-none"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowIpModal(true)}
+                          disabled={socks5RelayEnabled ? false : (!!socks5Proxy)}
+                          className="rounded-l-none border-l-0 px-3"
                         >
-                          <Input 
-                            value={proxyIp}
-                            placeholder={!!socks5Proxy && !socks5RelayEnabled
-                              ? "Proxy IP is disabled when using Socks5 proxy" 
-                              : "Example: cdn.xn--b6gac.eu.org:443 or 1.1.1.1:7443,2.2.2.2:443,[2a01:4f8:c2c:123f:64:5:6810:c55a]"
-                            }
-                            onChange={(e) => handleProxyIpChange(e.target.value)}
-                            disabled={socks5RelayEnabled ? false : (!!socks5Proxy)}
-                            addonAfter={
-                              <Button 
-                                type="text" 
-                                icon={<GlobalOutlined />} 
-                                onClick={() => setShowIpModal(true)} 
-                                disabled={socks5RelayEnabled ? false : (!!socks5Proxy)}
-                                style={{ 
-                                  margin: -7,
-                                  height: 30,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  padding: '0 10px',
-                                  borderLeft: '1px solid #d9d9d9'
-                                }}
-                              >
-                                {t('getProxyIp')}
-                              </Button>
-                            }
-                          />
-                        </Form.Item>
-                      )
-                    }
-                  </Form.Item>
+                          <GlobeAltIcon className="h-4 w-4 mr-2" />
+                          {t('getProxyIp')}
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-                  <Form.Item
-                    label={<Tooltip title={t('socks5ProxyTooltip')}>{t('socks5Proxy')}</Tooltip>}
-                    name="socks5Proxy"
-                  >
+            <FormField
+              control={form.control}
+              name="socks5Proxy"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('socks5Proxy')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('socks5ProxyTooltip')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
                     <Input
-                      value={socks5Proxy}
+                      {...field}
+                      value={field.value || ''}
                       placeholder={!!proxyIp && !socks5RelayEnabled
                         ? "Socks5 proxy is disabled when using proxy IP without relay" 
                         : "Example: user:pass@host:port or user1:pass1@host1:port1,user2:pass2@host2:port2"
                       }
-                      onChange={(e) => handleSocks5ProxyChange(e.target.value)}
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        handleSocks5ProxyChange(e.target.value);
+                      }}
                       disabled={socks5RelayEnabled ? false : (!!proxyIp && !socks5RelayEnabled)}
                     />
-                  </Form.Item>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                  <Form.Item
-                    label={<Tooltip title={t('customDomainTooltip')}>{t('customDomain')}</Tooltip>}
-                    name="customDomain"
-                  >
-                    <Input placeholder="Example: edtunnel.test.com NOTE: You must owner this domain." />
-                  </Form.Item>
-                </>
-              ),
-            },
-          ]}
-        />
+            <FormField
+              control={form.control}
+              name="customDomain"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{t('customDomain')}</span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{t('customDomainTooltip')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value || ''}
+                      placeholder="Example: edtunnel.test.com NOTE: You must owner this domain."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
-        <div className={styles.buttonContainer}>
+        <div className="flex flex-col gap-4 mt-6">
           {/* 主要操作按钮 */}
-          <div className={styles.mainButtons}>
+          <div className="flex flex-wrap gap-3">
             <Button
-              type="primary"
-              loading={loading}
-              onClick={createWorker}
-              icon={<CloudUploadOutlined />}
-              className={styles.mainButton}
+              type="submit"
+              disabled={loading}
+              className="flex-1 min-w-[200px] bg-blue-600 hover:bg-blue-700 text-white"
             >
+              {loading ? (
+                <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <BoltIcon className="h-4 w-4 mr-2" />
+              )}
               {t('createWorkerNode')}
             </Button>
             <Button
+              type="button"
+              variant="outline"
               onClick={onShowBulkDeployment}
-              icon={<ThunderboltOutlined />}
-              className={styles.bulkButton}
+              className="flex-1 min-w-[150px]"
             >
+              <BoltIcon className="h-4 w-4 mr-2" />
               {t('bulkDeploy', 'Bulk Deploy')}
             </Button>
             <Button
+              type="button"
+              variant="outline"
               onClick={onShowConfigManagement}
-              icon={<SettingOutlined />}
-              className={styles.configButton}
+              className="flex-1 min-w-[150px]"
             >
+              <Cog6ToothIcon className="h-4 w-4 mr-2" />
               {t('configManagement', 'Config')}
             </Button>
           </div>
           
           {/* 清除数据按钮 */}
-          <div className={styles.clearButtonContainer}>
+          <div className="flex justify-center">
             <Button
+              type="button"
+              variant="destructive"
               onClick={clearSavedData}
-              icon={<DeleteOutlined />}
-              className={styles.clearButton}
+              className="w-auto px-6"
             >
+              <TrashIcon className="h-4 w-4 mr-2" />
               {t('clearSavedData')}
             </Button>
           </div>
         </div>
+        </form>
       </Form>
 
-      {/* IP Selection Modal */}
-      <Modal
-        title={t('selectProxyIpCountry')}
-        open={showIpModal}
-        onCancel={() => setShowIpModal(false)}
-        footer={[
-          <Button key="refresh" 
-            onClick={fetchCountryData} 
-            loading={loadingCountries} 
-            icon={<ReloadOutlined />}
-            style={{
-              borderRadius: '6px',
-              boxShadow: '0 2px 0 rgba(0, 0, 0, 0.05)'
-            }}
-          >
-            {t('refreshCountryList')}
-          </Button>,
-          <Button key="cancel" 
-            onClick={() => setShowIpModal(false)}
-            style={{
-              marginLeft: '10px',
-              borderRadius: '6px'
-            }}
-          >
-            {t('cancel')}
-          </Button>
-        ]}
-      >
-        <p style={{ marginBottom: '20px' }}>
-          {t('selectProxyIpDescription')}
-          <br />
-          <small>({t('maxIpsInfo', { count: MAX_PROXY_IPS })})</small>
-        </p>
-        
-        {loadingCountries ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '30px 20px',
-            background: '#f8f8f8',
-            borderRadius: '8px',
-            margin: '10px 0'
-          }}>
-            <div style={{ marginBottom: '10px', fontSize: '16px' }}>
-              <ReloadOutlined spin style={{ marginRight: '10px', color: '#1890ff' }} />
-              {t('loadingCountries')}
-            </div>
-            <div style={{ color: '#595959', fontSize: '13px' }}>
-              {t('inferringCountries')}
-            </div>
-          </div>
-        ) : (
-          <div>
-            {countryOptions.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '30px 20px',
-                background: '#f8f8f8',
-                borderRadius: '8px',
-                margin: '10px 0',
-                color: '#ff4d4f'
-              }}>
-                <div style={{ marginBottom: '10px', fontSize: '16px' }}>
-                  {t('noCountriesFound')}
+      {/* IP Selection Dialog */}
+      <Dialog open={showIpModal} onOpenChange={setShowIpModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t('selectProxyIpCountry')}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {t('selectProxyIpDescription')}
+              <br />
+              <small>({t('maxIpsInfo', { count: MAX_PROXY_IPS })})</small>
+            </p>
+            
+            {loadingCountries ? (
+              <div className="text-center p-8 bg-muted rounded-lg">
+                <div className="mb-2 text-base flex items-center justify-center">
+                  <ArrowPathIcon className="h-4 w-4 mr-2 animate-spin text-primary" />
+                  {t('loadingCountries')}
+                </div>
+                <div className="text-muted-foreground text-sm">
+                  {t('inferringCountries')}
                 </div>
               </div>
             ) : (
-              <div className={`${styles.countryGrid} ${showAllCountries ? styles.countryGridExpanded : ''}`}>
-                {countryOptions
-                  .slice(0, showAllCountries ? countryOptions.length : 9)
-                  .map(option => (
+              <div>
+                {countryOptions.length === 0 ? (
+                  <div className="text-center p-8 bg-muted rounded-lg text-destructive">
+                    <div className="text-base">
+                      {t('noCountriesFound')}
+                    </div>
+                  </div>
+                ) : (
+                  <div className={`grid grid-cols-3 gap-3 ${showAllCountries ? 'max-h-none' : 'max-h-[300px] overflow-hidden'}`}>
+                    {countryOptions
+                      .slice(0, showAllCountries ? countryOptions.length : 9)
+                      .map(option => (
+                        <Button 
+                          key={option.value}
+                          variant="outline"
+                          className="h-12 text-sm justify-start"
+                          title={`${option.count} IPs available`}
+                          disabled={fetchingIps}
+                          onClick={() => fetchIpsByCountry(option.value)}
+                        >
+                          <span className="truncate">
+                            {option.label}
+                          </span>
+                        </Button>
+                      ))}
+                  </div>
+                )}
+                {countryOptions.length > 9 && (
+                  <div className="text-center mt-4">
                     <Button 
-                      key={option.value}
-                      className={styles.countryButton}
-                      title={`${option.count} IPs available`}
-                      loading={fetchingIps}
-                      onClick={() => fetchIpsByCountry(option.value)}
+                      variant="outline"
+                      onClick={() => setShowAllCountries(!showAllCountries)}
+                      className="rounded-full px-5 h-8"
                     >
-                      <span className={styles.countryButtonSpan}>
-                        {option.label}
-                      </span>
+                      {showAllCountries ? (
+                        <ChevronUpIcon className="h-4 w-4 mr-2" />
+                      ) : (
+                        <ChevronDownIconSolid className="h-4 w-4 mr-2" />
+                      )}
+                      {showAllCountries 
+                        ? t('collapseCountries') 
+                        : t('showAllCountries', {count: countryOptions.length})}
                     </Button>
-                  ))}
-              </div>
-            )}
-            {countryOptions.length > 9 && (
-              <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '5px' }}>
-                <Button 
-                  onClick={() => setShowAllCountries(!showAllCountries)}
-                  type="primary"
-                  ghost
-                  style={{
-                    borderRadius: '20px',
-                    padding: '0 20px',
-                    height: '32px',
-                    boxShadow: '0 2px 0 rgba(0, 0, 0, 0.05)'
-                  }}
-                  icon={showAllCountries ? <UpOutlined /> : <DownOutlined />}
-                >
-                  {showAllCountries 
-                    ? t('collapseCountries') 
-                    : t('showAllCountries', {count: countryOptions.length})}
-                </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </Modal>
+          
+          <DialogFooter className="flex justify-between">
+            <Button 
+              variant="outline"
+              onClick={fetchCountryData} 
+              disabled={loadingCountries}
+            >
+              <ArrowPathIcon className="h-4 w-4 mr-2" />
+              {t('refreshCountryList')}
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => setShowIpModal(false)}
+            >
+              {t('cancel')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
-export default WorkerForm; 
+export default WorkerForm;

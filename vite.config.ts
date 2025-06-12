@@ -1,9 +1,15 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   css: {
     preprocessorOptions: {
       scss: {
@@ -39,13 +45,13 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-antd': ['antd'],
+
           'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          'vendor-utils': ['axios', 'uuid', 'react-copy-to-clipboard', 'react-helmet', 'react-share'],
+          'vendor-utils': ['axios', 'uuid', 'react-copy-to-clipboard', 'react-helmet-async', 'react-share'],
           'vendor-window': ['react-window', 'react-window-infinite-loader']
         },
         chunkFileNames: (chunkInfo) => {
-          const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
+          const _facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
           return `js/[name]-[hash].js`;
         },
         entryFileNames: 'js/[name]-[hash].js',
@@ -75,11 +81,11 @@ export default defineConfig({
     include: [
       'react',
       'react-dom',
-      'antd',
+
       'axios',
       'uuid',
       'react-copy-to-clipboard',
-      'react-helmet',
+      'react-helmet-async',
       'react-share',
       'react-window',
       'react-window-infinite-loader'

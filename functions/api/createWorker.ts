@@ -96,7 +96,7 @@ export async function onRequest(context: {
 }
 
 // Handle preflight OPTIONS requests
-export async function onRequestOptions(context: {
+export async function onRequestOptions(_context: {
   request: Request;
   env: Env;
 }): Promise<Response> {
@@ -109,4 +109,4 @@ export async function onRequestOptions(context: {
       'Access-Control-Max-Age': '86400',
     },
   });
-} 
+}

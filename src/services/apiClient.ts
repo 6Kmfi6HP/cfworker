@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { message } from 'antd';
+import { message } from '../utils/notifications';
 
 // API 客户端类
 class APIClient {
@@ -212,4 +212,4 @@ declare module 'axios' {
       startTime: number;
     };
   }
-} 
+}

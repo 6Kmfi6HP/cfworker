@@ -1,56 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Badge } from './ui/badge';
+import { Avatar } from './ui/avatar';
+import { Skeleton } from './ui/skeleton';
+import { Card } from './ui/card';
+import { Separator } from './ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from './ui/form';
 import {
-  Button,
-  Modal,
-  Form,
-  Input,
-  Select,
-  Tag,
-  Space,
-  Popconfirm,
-  message,
-  notification,
-  Avatar,
-  Tooltip,
-  Typography,
-  Skeleton,
-  Card,
-  Row,
-  Col,
-  Badge,
-  Divider,
-  Empty,
-  Drawer,
-  Dropdown,
-  Menu,
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  UserOutlined,
-  CheckCircleOutlined,
-  MoreOutlined,
-  StarOutlined,
-  StarFilled,
-  SettingOutlined,
-  EyeOutlined,
-  CopyOutlined,
-  GlobalOutlined,
-  MailOutlined,
-  TagsOutlined,
-  CalendarOutlined,
-  AppstoreOutlined,
-  UnorderedListOutlined,
-} from '@ant-design/icons';
+  Plus,
+  Edit,
+  Trash2,
+  User,
+  CheckCircle,
+  MoreHorizontal,
+  Star,
+  Eye,
+  Copy,
+  Globe,
+  Mail,
+  Calendar,
+  Grid3X3,
+  List,
+  Users,
+  Tags,
+  Settings as SettingsIcon,
+  Plus as PlusIcon
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { useAccount } from '../contexts/AccountContext';
 import { AccountFormData, AccountCredentials } from '../types/account';
 import { useTranslation } from 'react-i18next';
-import './AccountManagement.css';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+// import './AccountManagement.css'; // Removed due to Ant Design conflicts
 
-const { Text, Title } = Typography;
-const { TextArea } = Input;
-const { Search } = Input;
+// Form validation schema
+const accountFormSchema = z.object({
+  name: z.string().min(1, 'Account name is required'),
+  email: z.string().email('Invalid email address'),
+  globalAPIKey: z.string().min(1, 'Global API Key is required'),
+  accountId: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  notes: z.string().optional(),
+});
+
+type AccountFormValues = z.infer<typeof accountFormSchema>;
 
 interface AccountManagementProps {
   visible: boolean;
@@ -69,7 +69,17 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
     loading: accountsLoading 
   } = useAccount();
   
-  const [form] = Form.useForm();
+  const form = useForm<AccountFormValues>({
+    resolver: zodResolver(accountFormSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      globalAPIKey: '',
+      accountId: '',
+      tags: [],
+      notes: '',
+    },
+  });
   const [editingAccount, setEditingAccount] = useState<AccountCredentials | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -99,29 +109,28 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
     }
   }, []);
 
-  const handleAddAccount = () => {
+  const handleAdd = () => {
     setEditingAccount(null);
-    form.resetFields();
+    form.reset();
     setShowForm(true);
   };
 
-  const handleEditAccount = (account: AccountCredentials) => {
+  const handleEdit = (account: AccountCredentials) => {
     setEditingAccount(account);
-    form.setFieldsValue({
+    form.reset({
       name: account.name,
       email: account.email,
       globalAPIKey: account.globalAPIKey,
-      accountId: account.accountId,
+      accountId: account.accountId || '',
       tags: account.tags || [],
-      notes: account.notes,
+      notes: account.notes || '',
     });
     setShowForm(true);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = form.handleSubmit(async (values: AccountFormValues) => {
     try {
       setLoading(true);
-      const values = await form.validateFields();
       const formData: AccountFormData = {
         ...values,
         tags: values.tags || [],
@@ -129,55 +138,36 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
 
       if (editingAccount) {
         await updateAccount(editingAccount.id, formData);
-        notification.success({
-          message: t('accountUpdated', 'Account updated successfully'),
-          description: t('accountUpdatedDesc', 'Account information has been updated.'),
-          placement: 'topRight',
-          duration: 3,
-        });
+        toast.success(t('accountUpdated', 'Account updated successfully'));
       } else {
         await addAccount(formData);
-        notification.success({
-          message: t('accountAdded', 'Account added successfully'),
-          description: t('accountAddedDesc', 'New account has been added to your list.'),
-          placement: 'topRight',
-          duration: 3,
-        });
+        toast.success(t('accountAdded', 'Account added successfully'));
       }
 
       setShowForm(false);
-      form.resetFields();
+      form.reset();
       setEditingAccount(null);
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.error('Form submission failed:', error);
+      toast.error(t('formSubmissionError', 'Failed to save account. Please try again.'));
     } finally {
       setLoading(false);
     }
-  };
+  });
 
   const handleDeleteAccount = async (accountId: string) => {
     try {
       await deleteAccount(accountId);
-      notification.success({
-        message: t('accountDeleted', 'Account deleted successfully'),
-        description: t('accountDeletedDesc', 'Account has been removed from your list.'),
-        placement: 'topRight',
-        duration: 3,
-      });
+      toast.success(t('accountDeleted', 'Account deleted successfully'));
     } catch (error) {
       console.error('Error deleting account:', error);
-      message.error(t('deleteAccountError', 'Failed to delete account'));
+      toast.error(t('deleteAccountError', 'Failed to delete account'));
     }
   };
 
   const handleSetCurrent = (account: AccountCredentials) => {
     setCurrentAccount(account);
-    notification.success({
-      message: t('accountSetAsCurrent', 'Account set as current'),
-      description: t('accountSetAsCurrentDesc', `Now using ${account.name || account.email} as the active account.`),
-      placement: 'topRight',
-      duration: 3,
-    });
+    toast.success(t('accountSetAsCurrent', 'Account set as current'));
   };
 
   const toggleFavorite = (accountId: string) => {
@@ -193,12 +183,7 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
 
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
-    notification.success({
-      message: t('copied', `${type} copied to clipboard`),
-      description: t('copiedDesc', 'Content has been copied to your clipboard.'),
-      placement: 'topRight',
-      duration: 2,
-    });
+    toast.success(t('copied', `${type} copied to clipboard`));
   };
 
   const getAccountDisplayName = (account: AccountCredentials) => {
@@ -238,175 +223,145 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
     const isFavorite = favoriteAccounts.has(account.id);
 
     const actionMenu = (
-      <Menu>
+      <DropdownMenuContent>
         {!isCurrent && (
-          <Menu.Item 
-            key="setCurrent" 
-            icon={<CheckCircleOutlined />}
-            onClick={() => handleSetCurrent(account)}
-          >
+          <DropdownMenuItem onClick={() => handleSetCurrent(account)}>
+            <CheckCircle className="mr-2 h-4 w-4" />
             {t('setCurrent', 'Set as Current')}
-          </Menu.Item>
+          </DropdownMenuItem>
         )}
-        <Menu.Item 
-          key="edit" 
-          icon={<EditOutlined />}
-          onClick={() => handleEditAccount(account)}
-        >
+        <DropdownMenuItem onClick={() => handleEdit(account)}>
+          <Edit className="mr-2 h-4 w-4" />
           {t('edit', 'Edit')}
-        </Menu.Item>
-        <Menu.Item 
-          key="copyEmail" 
-          icon={<CopyOutlined />}
-          onClick={() => copyToClipboard(account.email, 'Email')}
-        >
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => copyToClipboard(account.email, 'Email')}>
+          <Copy className="mr-2 h-4 w-4" />
           {t('copyEmail', 'Copy Email')}
-        </Menu.Item>
+        </DropdownMenuItem>
         {account.accountId && (
-          <Menu.Item 
-            key="copyAccountId" 
-            icon={<CopyOutlined />}
-            onClick={() => copyToClipboard(account.accountId!, 'Account ID')}
-          >
+          <DropdownMenuItem onClick={() => copyToClipboard(account.accountId!, 'Account ID')}>
+            <Copy className="mr-2 h-4 w-4" />
             {t('copyAccountId', 'Copy Account ID')}
-          </Menu.Item>
+          </DropdownMenuItem>
         )}
-        <Menu.Divider />
-        <Menu.Item 
-          key="delete" 
-          icon={<DeleteOutlined />}
-          danger
+        <Separator />
+        <DropdownMenuItem 
+          className="text-red-600"
           onClick={() => {
-            Modal.confirm({
-              title: t('deleteAccountConfirm', 'Are you sure you want to delete this account?'),
-              content: t('deleteAccountWarning', 'This action cannot be undone.'),
-              onOk: () => handleDeleteAccount(account.id),
-              okText: t('delete', 'Delete'),
-              cancelText: t('cancel', 'Cancel'),
-              okButtonProps: { danger: true },
-            });
+            if (confirm(t('deleteAccountConfirm', 'Are you sure you want to delete this account?'))) {
+              handleDeleteAccount(account.id);
+            }
           }}
         >
+          <Trash2 className="mr-2 h-4 w-4" />
           {t('delete', 'Delete')}
-        </Menu.Item>
-      </Menu>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     );
 
     return (
       <Card
         key={account.id}
-        className={`account-card ${isCurrent ? 'current-account' : ''}`}
-        hoverable
-        actions={[
-          <Tooltip title={isFavorite ? t('removeFromFavorites') : t('addToFavorites')}>
-            <Button
-              type="text"
-              icon={isFavorite ? <StarFilled /> : <StarOutlined />}
-              onClick={() => toggleFavorite(account.id)}
-              className={isFavorite ? 'favorite-btn active' : 'favorite-btn'}
-            />
-          </Tooltip>,
-          <Tooltip title={t('viewDetails', 'View Details')}>
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              onClick={() => handleEditAccount(account)}
-            />
-          </Tooltip>,
-          <Dropdown overlay={actionMenu} trigger={['click']} placement="bottomRight">
-            <Button type="text" icon={<MoreOutlined />} />
-          </Dropdown>
-        ]}
+        className={`p-4 ${isCurrent ? 'ring-2 ring-blue-500' : ''}`}
       >
-        <div className="account-card-header">
-          <div className="account-avatar-section">
-            <Badge 
-              dot 
-              status={account.isActive ? 'success' : 'error'}
-              offset={[-8, 8]}
-            >
-              <Avatar 
-                size={48}
-                style={{ 
-                  backgroundColor: isCurrent ? '#52c41a' : '#1890ff',
-                  fontSize: '18px',
-                  fontWeight: 'bold'
-                }}
-              >
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-start space-x-3 flex-1">
+            <div className="relative">
+              <Avatar className={`h-12 w-12 text-lg font-bold ${isCurrent ? 'bg-green-500' : 'bg-blue-500'}`}>
                 {getAccountDisplayName(account).charAt(0).toUpperCase()}
               </Avatar>
-            </Badge>
-          </div>
+              <div className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white ${
+                account.isActive ? 'bg-green-500' : 'bg-red-500'
+              }`} />
+            </div>
           
-          <div className="account-info">
-            <div className="account-name">
-              <Text strong style={{ fontSize: '16px' }}>
-                {getAccountDisplayName(account)}
-              </Text>
-              {isCurrent && (
-                <Tag color="green" style={{ marginLeft: '8px' }}>
-                  {t('current', 'Current')}
-                </Tag>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-base">
+                  {getAccountDisplayName(account)}
+                </span>
+                {isCurrent && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    {t('current', 'Current')}
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                <Mail className="h-3 w-3" />
+                <span>{account.email}</span>
+              </div>
+              
+              {account.accountId && (
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <Globe className="h-3 w-3" />
+                  <span>{account.accountId.substring(0, 8)}...</span>
+                </div>
               )}
             </div>
-            
-            <div className="account-email">
-              <MailOutlined style={{ marginRight: '4px', color: '#8c8c8c' }} />
-              <Text type="secondary" style={{ fontSize: '13px' }}>
-                {account.email}
-              </Text>
-            </div>
-            
-            {account.accountId && (
-              <div className="account-id">
-                <GlobalOutlined style={{ marginRight: '4px', color: '#8c8c8c' }} />
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {account.accountId.substring(0, 8)}...
-                </Text>
-              </div>
-            )}
+          </div>
+          <div className="flex items-center justify-end space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleFavorite(account.id)}
+              className={isFavorite ? 'text-yellow-500' : 'text-gray-400'}
+            >
+              {isFavorite ? <Star className="h-4 w-4 fill-current" /> : <Star className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEdit(account)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              {actionMenu}
+            </DropdownMenu>
           </div>
         </div>
 
-        <Divider style={{ margin: '12px 0' }} />
+        <Separator className="my-3" />
 
-        <div className="account-meta">
-          <div className="account-tags">
-            {account.tags && account.tags.length > 0 ? (
-              <div style={{ marginBottom: '8px' }}>
-                <TagsOutlined style={{ marginRight: '4px', color: '#8c8c8c' }} />
-                                 {account.tags.slice(0, 3).map((tag) => (
-                   <Tag key={tag} color="blue" style={{ fontSize: '11px' }}>
-                     {tag}
-                   </Tag>
-                 ))}
-                 {account.tags.length > 3 && (
-                   <Tag color="default" style={{ fontSize: '11px' }}>
-                     +{account.tags.length - 3}
-                   </Tag>
-                 )}
+        <div className="space-y-2">
+          {account.tags && account.tags.length > 0 && (
+            <div className="flex items-center gap-2">
+              <Tags className="h-3 w-3 text-gray-400" />
+              <div className="flex gap-1 flex-wrap">
+                {account.tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {account.tags.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{account.tags.length - 3}
+                  </Badge>
+                )}
               </div>
-            ) : null}
-            
-            <div className="account-created">
-              <CalendarOutlined style={{ marginRight: '4px', color: '#8c8c8c' }} />
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {new Date(account.createdAt).toLocaleDateString()}
-              </Text>
             </div>
+          )}
+          
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <Calendar className="h-3 w-3" />
+            <span>{new Date(account.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
 
         {account.notes && (
           <>
-            <Divider style={{ margin: '8px 0' }} />
-            <div className="account-notes">
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {account.notes.length > 50 
-                  ? `${account.notes.substring(0, 50)}...` 
-                  : account.notes
-                }
-              </Text>
+            <Separator className="my-2" />
+            <div className="text-xs text-gray-500">
+              {account.notes.length > 50 
+                ? `${account.notes.substring(0, 50)}...` 
+                : account.notes
+              }
             </div>
           </>
         )}
@@ -421,109 +376,110 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
     return (
       <Card 
         key={account.id}
-        className={`account-list-item ${isCurrent ? 'current-account' : ''}`}
-        size="small"
-        style={{ marginBottom: '8px' }}
+        className={`p-3 mb-2 ${isCurrent ? 'ring-2 ring-blue-500' : ''}`}
       >
-        <div className="account-list-content">
-          <div className="account-list-left">
-            <Badge 
-              dot 
-              status={account.isActive ? 'success' : 'error'}
-              offset={[-4, 4]}
-            >
-              <Avatar 
-                size={32}
-                style={{ 
-                  backgroundColor: isCurrent ? '#52c41a' : '#1890ff',
-                  fontSize: '14px'
-                }}
-              >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Avatar className={`h-8 w-8 text-sm ${isCurrent ? 'bg-green-500' : 'bg-blue-500'}`}>
                 {getAccountDisplayName(account).charAt(0).toUpperCase()}
               </Avatar>
-            </Badge>
+              <div className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-white ${
+                account.isActive ? 'bg-green-500' : 'bg-red-500'
+              }`} />
+            </div>
             
-            <div className="account-list-info">
-              <div>
-                <Text strong>{getAccountDisplayName(account)}</Text>
-                                 {isCurrent && (
-                   <Tag color="green" style={{ marginLeft: '8px', fontSize: '12px' }}>
-                     {t('current', 'Current')}
-                   </Tag>
-                 )}
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-sm">{getAccountDisplayName(account)}</span>
+                {isCurrent && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                    {t('current', 'Current')}
+                  </Badge>
+                )}
               </div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
+              <div className="text-xs text-gray-600">
                 {account.email}
-              </Text>
+              </div>
             </div>
           </div>
           
-          <div className="account-list-right">
-            <Space>
+          <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleFavorite(account.id)}
+              className={isFavorite ? 'text-yellow-500' : 'text-gray-400'}
+            >
+              {isFavorite ? <Star className="h-4 w-4 fill-current" /> : <Star className="h-4 w-4" />}
+            </Button>
+            
+            {!isCurrent && (
               <Button
-                type="text"
-                size="small"
-                icon={isFavorite ? <StarFilled /> : <StarOutlined />}
-                onClick={() => toggleFavorite(account.id)}
-                className={isFavorite ? 'favorite-btn active' : 'favorite-btn'}
-              />
-              
-              {!isCurrent && (
-                <Button
-                  type="text"
-                  size="small"
-                  onClick={() => handleSetCurrent(account)}
-                >
-                  {t('setCurrent', 'Set Current')}
-                </Button>
-              )}
-              
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => handleEditAccount(account)}
-              />
-              
-              <Popconfirm
-                title={t('deleteAccountConfirm', 'Are you sure?')}
-                onConfirm={() => handleDeleteAccount(account.id)}
-                okText={t('yes', 'Yes')}
-                cancelText={t('no', 'No')}
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSetCurrent(account)}
               >
-                <Button
-                  type="text"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                />
-              </Popconfirm>
-            </Space>
-          </div>
-        </div>
-      </Card>
+                {t('setCurrent', 'Set Current')}
+              </Button>
+            )}
+            
+            <Button
+              variant="ghost"
+              size="sm"
+                onClick={() => handleEdit(account)}
+             >
+               <Edit className="h-4 w-4" />
+             </Button>
+             
+             <Button
+               variant="ghost"
+               size="sm"
+               className="text-red-600 hover:text-red-700"
+               onClick={() => {
+                 if (confirm(t('deleteAccountConfirm', 'Are you sure?'))) {
+                   handleDeleteAccount(account.id);
+                 }
+               }}
+             >
+               <Trash2 className="h-4 w-4" />
+             </Button>
+           </div>
+         </div>
+       </Card>
     );
   };
 
   const renderContent = () => {
     if (accountsLoading) {
       return (
-        <div className="loading-container">
+        <div className="space-y-4">
           {viewMode === 'grid' ? (
-            <Row gutter={[16, 16]}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {[...Array(6)].map((_, index) => (
-                <Col key={index} xs={24} sm={12} lg={8} xl={6}>
-                  <Card>
-                    <Skeleton avatar active paragraph={{ rows: 3 }} />
-                  </Card>
-                </Col>
+                <Card key={index} className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                </Card>
               ))}
-            </Row>
+            </div>
           ) : (
-            <div>
+            <div className="space-y-2">
               {[...Array(5)].map((_, index) => (
-                <Card key={index} style={{ marginBottom: '8px' }}>
-                  <Skeleton avatar active paragraph={{ rows: 1 }} />
+                <Card key={index} className="p-3 mb-2">
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="space-y-1 flex-1">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -534,298 +490,289 @@ const AccountManagement: React.FC<AccountManagementProps> = ({ visible, onClose 
 
     if (filteredAndSortedAccounts.length === 0) {
       return (
-        <Empty
-          description={
-            searchText || filterTag 
-              ? t('noAccountsFound', 'No accounts found matching your criteria')
-              : t('noAccounts', 'No accounts yet')
-          }
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        >
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="text-gray-400 mb-4">
+            <Users className="h-16 w-16 mx-auto mb-2" />
+            <p className="text-lg font-medium">
+              {searchText || filterTag 
+                ? t('noAccountsFound', 'No accounts found matching your criteria')
+                : t('noAccounts', 'No accounts yet')
+              }
+            </p>
+          </div>
           {!searchText && !filterTag && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddAccount}>
+            <Button onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" />
               {t('addFirstAccount', 'Add Your First Account')}
             </Button>
           )}
-        </Empty>
+        </div>
       );
     }
 
     if (viewMode === 'grid') {
       return (
-        <Row gutter={[16, 16]}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAndSortedAccounts.map((account) => (
-            <Col key={account.id} xs={24} sm={12} lg={8} xl={6}>
-              {renderAccountCard(account)}
-            </Col>
+            renderAccountCard(account)
           ))}
-        </Row>
+        </div>
       );
     } else {
       return (
-        <div className="account-list">
+        <div className="space-y-2">
           {filteredAndSortedAccounts.map(renderAccountList)}
         </div>
       );
     }
   };
 
-  const FormComponent = isMobile ? Drawer : Modal;
-  const formProps = isMobile ? {
-    title: editingAccount ? t('editAccount', 'Edit Account') : t('addAccount', 'Add Account'),
-    open: showForm,
-    onClose: () => {
-      setShowForm(false);
-      form.resetFields();
-      setEditingAccount(null);
-    },
-    width: '100%',
-    placement: 'right' as const,
-    footer: (
-      <div style={{ textAlign: 'right' }}>
-        <Space>
-          <Button onClick={() => {
-            setShowForm(false);
-            form.resetFields();
-            setEditingAccount(null);
-          }}>
-            {t('cancel', 'Cancel')}
-          </Button>
-          <Button type="primary" loading={loading} onClick={handleSubmit}>
-            {editingAccount ? t('update', 'Update') : t('add', 'Add')}
-          </Button>
-        </Space>
-      </div>
-    ),
-  } : {
-    title: editingAccount ? t('editAccount', 'Edit Account') : t('addAccount', 'Add Account'),
-    open: showForm,
-    onCancel: () => {
-      setShowForm(false);
-      form.resetFields();
-      setEditingAccount(null);
-    },
-    onOk: handleSubmit,
-    confirmLoading: loading,
-    width: 600,
-    okText: editingAccount ? t('update', 'Update') : t('add', 'Add'),
+  // Form dialog handlers
+  const handleFormClose = () => {
+    setShowForm(false);
+    form.reset();
+    setEditingAccount(null);
   };
 
   return (
     <>
-      <Modal
-        title={
-          <div className="account-management-header">
-            <Title level={3} style={{ margin: 0 }}>
-              <SettingOutlined style={{ marginRight: '8px' }} />
+      <Dialog open={visible} onOpenChange={onClose}>
+        <DialogContent className={`max-w-6xl ${isMobile ? 'h-screen max-h-screen' : ''}`}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <SettingsIcon className="h-5 w-5" />
               {t('accountManagement', 'Account Management')}
-            </Title>
-            <Text type="secondary">
+            </DialogTitle>
+            <DialogDescription>
               {t('manageAccountsDescription', 'Manage your Cloudflare accounts')}
-            </Text>
-          </div>
-        }
-        open={visible}
-        onCancel={onClose}
-        width={isMobile ? '100%' : 1200}
-        footer={null}
-        className="account-management-modal"
-        style={isMobile ? { top: 0, paddingBottom: 0 } : {}}
-        bodyStyle={isMobile ? { height: 'calc(100vh - 110px)', overflow: 'auto' } : {}}
-      >
+            </DialogDescription>
+          </DialogHeader>
+          <div className={isMobile ? 'h-full overflow-auto' : ''}>
         {/* 工具栏 */}
         <div className="account-toolbar">
           <div className="toolbar-left">
             <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={handleAddAccount}
-              size={isMobile ? 'middle' : 'large'}
+              onClick={handleAdd}
+              size={isMobile ? 'sm' : 'default'}
             >
+              <PlusIcon className="h-4 w-4 mr-2" />
               {isMobile ? t('add', 'Add') : t('addAccount', 'Add Account')}
             </Button>
           </div>
           
           <div className="toolbar-center">
-            <Search
+            <Input
               placeholder={t('searchAccounts', 'Search accounts...')}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: isMobile ? 200 : 300 }}
-              allowClear
+              className={`${isMobile ? 'w-[200px]' : 'w-[300px]'}`}
             />
           </div>
           
           <div className="toolbar-right">
-            <Space>
+            <div className="flex items-center gap-2">
               {allTags.length > 0 && (
-                <Select
-                  placeholder={t('filterByTag', 'Filter by tag')}
-                  value={filterTag}
-                  onChange={setFilterTag}
-                  allowClear
-                  style={{ width: 120 }}
-                  size={isMobile ? 'middle' : 'large'}
-                >
-                  {allTags.map(tag => (
-                    <Select.Option key={tag} value={tag}>{tag}</Select.Option>
-                  ))}
+                <Select value={filterTag} onValueChange={setFilterTag}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder={t('filterByTag', 'Filter by tag')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allTags.map(tag => (
+                      <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               )}
               
-              <Select
-                value={sortBy}
-                onChange={setSortBy}
-                style={{ width: 100 }}
-                size={isMobile ? 'middle' : 'large'}
-              >
-                <Select.Option value="name">{t('name', 'Name')}</Select.Option>
-                <Select.Option value="created">{t('created', 'Created')}</Select.Option>
-                <Select.Option value="status">{t('status', 'Status')}</Select.Option>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'name' | 'created' | 'status')}>
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">{t('name', 'Name')}</SelectItem>
+                  <SelectItem value="created">{t('created', 'Created')}</SelectItem>
+                  <SelectItem value="status">{t('status', 'Status')}</SelectItem>
+                </SelectContent>
               </Select>
               
-              <Button.Group>
+              <div className="flex">
                 <Button
-                  type={viewMode === 'grid' ? 'primary' : 'default'}
-                  icon={<AppstoreOutlined />}
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size={isMobile ? 'sm' : 'default'}
                   onClick={() => setViewMode('grid')}
-                  size={isMobile ? 'middle' : 'large'}
-                />
+                  className="rounded-r-none"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </Button>
                 <Button
-                  type={viewMode === 'list' ? 'primary' : 'default'}
-                  icon={<UnorderedListOutlined />}
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size={isMobile ? 'sm' : 'default'}
                   onClick={() => setViewMode('list')}
-                  size={isMobile ? 'middle' : 'large'}
-                />
-              </Button.Group>
-            </Space>
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 统计信息 */}
         <div className="account-stats">
-          <Row gutter={16}>
-            <Col span={6}>
-              <div className="stat-item">
-                <Text type="secondary">{t('total', 'Total')}</Text>
-                <div className="stat-number">{accounts.length}</div>
-              </div>
-            </Col>
-            <Col span={6}>
-              <div className="stat-item">
-                <Text type="secondary">{t('active', 'Active')}</Text>
-                <div className="stat-number">{accounts.filter(a => a.isActive).length}</div>
-              </div>
-            </Col>
-            <Col span={6}>
-              <div className="stat-item">
-                <Text type="secondary">{t('favorites', 'Favorites')}</Text>
-                <div className="stat-number">{favoriteAccounts.size}</div>
-              </div>
-            </Col>
-            <Col span={6}>
-              <div className="stat-item">
-                <Text type="secondary">{t('current', 'Current')}</Text>
-                <div className="stat-number">{currentAccount ? 1 : 0}</div>
-              </div>
-            </Col>
-          </Row>
+          <div className="grid grid-cols-4 gap-4">
+            <div className="stat-item">
+              <span className="text-muted-foreground">{t('total', 'Total')}</span>
+              <div className="stat-number">{accounts.length}</div>
+            </div>
+            <div className="stat-item">
+              <span className="text-muted-foreground">{t('active', 'Active')}</span>
+              <div className="stat-number">{accounts.filter(a => a.isActive).length}</div>
+            </div>
+            <div className="stat-item">
+              <span className="text-muted-foreground">{t('favorites', 'Favorites')}</span>
+              <div className="stat-number">{favoriteAccounts.size}</div>
+            </div>
+            <div className="stat-item">
+              <span className="text-muted-foreground">{t('current', 'Current')}</span>
+              <div className="stat-number">{currentAccount ? 1 : 0}</div>
+            </div>
+          </div>
         </div>
 
-        <Divider />
+        <Separator />
 
         {/* 账号列表 */}
         <div className="account-content">
           {renderContent()}
         </div>
-      </Modal>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 添加/编辑表单 */}
-      <FormComponent {...formProps}>
-        <Form
-          form={form}
-          layout="vertical"
-          requiredMark={false}
-          style={{ paddingTop: isMobile ? '16px' : '0' }}
-        >
-          <Form.Item
-            name="name"
-            label={t('accountName', 'Account Name')}
-            rules={[
-              { required: true, message: t('accountNameRequired', 'Please enter account name') }
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder={t('accountNamePlaceholder', 'Enter a friendly name for this account')}
-              size="large"
+      <Dialog open={showForm} onOpenChange={handleFormClose}>
+        <DialogContent className={isMobile ? 'w-full h-screen' : 'max-w-2xl'}>
+          <DialogHeader>
+            <DialogTitle>
+              {editingAccount ? t('editAccount', 'Edit Account') : t('addAccount', 'Add Account')}
+            </DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={handleSubmit} className={`space-y-4 ${isMobile ? 'pt-4' : ''}`}>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('accountName', 'Account Name')}</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        {...field}
+                        placeholder={t('accountNamePlaceholder', 'Enter a friendly name for this account')}
+                        className="pl-10"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </Form.Item>
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('email', 'Email')}</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder={t('emailPlaceholder', 'Cloudflare account email')}
+                        className="pl-10"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <Form.Item
-            name="email"
-            label={t('email', 'Email')}
-            rules={[
-              { required: true, message: t('emailRequired', 'Please enter email') },
-              { type: 'email', message: t('emailInvalid', 'Please enter a valid email') }
-            ]}
-          >
-            <Input
-              prefix={<MailOutlined />}
-              placeholder={t('emailPlaceholder', 'Cloudflare account email')}
-              size="large"
+            <FormField
+              control={form.control}
+              name="globalAPIKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('globalAPIKey', 'Global API Key')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="password"
+                      placeholder={t('globalAPIKeyPlaceholder', 'Your Cloudflare Global API Key')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </Form.Item>
 
-          <Form.Item
-            name="globalAPIKey"
-            label={t('globalAPIKey', 'Global API Key')}
-            rules={[
-              { required: true, message: t('globalAPIKeyRequired', 'Please enter Global API Key') }
-            ]}
-          >
-            <Input.Password
-              placeholder={t('globalAPIKeyPlaceholder', 'Your Cloudflare Global API Key')}
-              size="large"
+            <FormField
+              control={form.control}
+              name="accountId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('accountId', 'Account ID (Optional)')}</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        {...field}
+                        placeholder={t('accountIdPlaceholder', 'Cloudflare Account ID')}
+                        className="pl-10"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </Form.Item>
 
-          <Form.Item
-            name="accountId"
-            label={t('accountId', 'Account ID (Optional)')}
-          >
-            <Input
-              prefix={<GlobalOutlined />}
-              placeholder={t('accountIdPlaceholder', 'Cloudflare Account ID')}
-              size="large"
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('notes', 'Notes')}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      rows={4}
+                      placeholder={t('notesPlaceholder', 'Additional notes about this account')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </Form.Item>
-
-          <Form.Item
-            name="tags"
-            label={t('tags', 'Tags')}
-          >
-            <Select
-              mode="tags"
-              placeholder={t('tagsPlaceholder', 'Add tags to organize accounts')}
-              style={{ width: '100%' }}
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="notes"
-            label={t('notes', 'Notes')}
-          >
-            <TextArea
-              rows={4}
-              placeholder={t('notesPlaceholder', 'Additional notes about this account')}
-            />
-          </Form.Item>
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={handleFormClose}>
+                {t('cancel', 'Cancel')}
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Loading...' : (editingAccount ? t('update', 'Update') : t('add', 'Add'))}
+              </Button>
+            </div>
+          </form>
         </Form>
-      </FormComponent>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
-export default AccountManagement; 
+export default AccountManagement;

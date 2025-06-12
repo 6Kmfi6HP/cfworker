@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import i18n from './i18n';
 import { AccountProvider } from './contexts/AccountContext';
 import { ThemeProvider, useTheme } from './ThemeContext';
-import { Helmet } from 'react-helmet';
+import { Helmet, HelmetProvider } from 'react-helmet-async';
 
 // Components
 import Header from './components/Header';
@@ -14,7 +14,7 @@ import BulkWorkerDeployment from './components/BulkWorkerDeployment';
 import ConfigManagement from './components/ConfigManagement';
 import Footer from './Footer';
 
-import './theme.css';
+// import './theme.css';
 
 function AppContent() {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -138,7 +138,7 @@ function AppContent() {
 
       {/* Configuration Management Modal */}
       <ConfigManagement
-        visible={showConfigManagement}
+        open={showConfigManagement}
         onClose={() => setShowConfigManagement(false)}
       />
 
@@ -154,13 +154,15 @@ function AppContent() {
   );
 }
 
-// 使用 ThemeProvider 和 AccountProvider 包装 App 组件
+// 使用 HelmetProvider, ThemeProvider 和 AccountProvider 包装 App 组件
 const App = () => (
-  <AccountProvider>
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
-  </AccountProvider>
+  <HelmetProvider>
+    <AccountProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </AccountProvider>
+  </HelmetProvider>
 );
 
 // Export App as the default export

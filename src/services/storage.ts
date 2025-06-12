@@ -88,7 +88,7 @@ class EncryptedStorage {
               ['encrypt', 'decrypt']
             );
             resolve(key);
-          } catch (error) {
+          } catch (_error) {
             resolve(null);
           }
         } else {
@@ -268,4 +268,4 @@ class EncryptedStorage {
   }
 }
 
-export const encryptedStorage = new EncryptedStorage(); 
+export const encryptedStorage = new EncryptedStorage();

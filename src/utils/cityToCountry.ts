@@ -1,5 +1,7 @@
 // 城市到国家的映射函数，支持i18n
-export const getCityToCountry = (t: any) => ({
+type TranslationFunction = (key: string, fallback?: string) => string;
+
+export const getCityToCountry = (t: TranslationFunction) => ({
   // 欧洲
   "Frankfurt": {code: "DE", name: t('countries.germany', '德国'), emoji: "🇩🇪"},
   "Amsterdam": {code: "NL", name: t('countries.netherlands', '荷兰'), emoji: "🇳🇱"},
@@ -92,4 +94,4 @@ export const getCityToCountry = (t: any) => ({
   "São Paulo": {code: "BR", name: t('countries.brazil', '巴西'), emoji: "🇧🇷"},
   "Bogota": {code: "CO", name: t('countries.colombia', '哥伦比亚'), emoji: "🇨🇴"},
   "Buenos Aires": {code: "AR", name: t('countries.argentina', '阿根廷'), emoji: "🇦🇷"}
-}); 
+});

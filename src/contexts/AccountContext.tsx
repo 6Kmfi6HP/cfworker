@@ -3,7 +3,7 @@ import { AccountCredentials, AccountFormData } from '../types/account';
 import { encryptedStorage } from '../services/storage';
 import { apiClient } from '../services/apiClient';
 import { v4 as uuidv4 } from 'uuid';
-import { message, notification } from 'antd';
+import { message, notification } from '../utils/notifications';
 
 interface AccountContextType {
   accounts: AccountCredentials[];
@@ -212,4 +212,4 @@ export const AccountProvider: React.FC<AccountProviderProps> = ({ children }) =>
       {children}
     </AccountContext.Provider>
   );
-}; 
+};

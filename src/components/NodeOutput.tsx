@@ -1,10 +1,13 @@
 import React from 'react';
-import { Button, Space, Modal, notification } from 'antd';
-import { 
-  ThunderboltOutlined, 
-  RocketOutlined, 
-  AccountBookFilled 
-} from '@ant-design/icons';
+import { notification } from '../utils/notifications';
+import { Button } from './ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from './ui/dialog';
 import { 
   FacebookShareButton, 
   TwitterShareButton, 
@@ -45,78 +48,77 @@ const NodeOutput: React.FC<NodeOutputProps> = ({
   const { t } = useTranslation();
   const { theme } = useTheme();
 
-  const nodeOutputStyle = {
-    backgroundColor: theme === 'dark' ? '#141414' : '#f0f2f5',
-    color: theme === 'dark' ? '#ffffff' : '#333333',
-    border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
-    borderRadius: '8px',
-    padding: '24px',
-    marginTop: '32px',
-    transition: 'filter 0.3s ease-in-out',
-  };
-
-  const titleStyle = {
-    color: theme === 'dark' ? '#40a9ff' : '#1890ff',
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    marginBottom: '20px',
-  };
-
-  const copyTextStyle = {
-    backgroundColor: theme === 'dark' ? '#262626' : '#ffffff',
-    border: `1px solid ${theme === 'dark' ? '#434343' : '#d9d9d9'}`,
-    borderRadius: '4px',
-    padding: '12px',
-    fontFamily: "'Fira Code', monospace",
-    fontSize: '0.875rem',
-    lineHeight: 1.5,
-    wordBreak: 'break-all' as const,
-    color: theme === 'dark' ? '#ffffff' : '#333333',
-  };
+  // Tailwind classes based on theme
+  const nodeOutputClasses = `p-6 rounded-lg ${
+    theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
+  }`;
+  
+  const titleClasses = `text-2xl font-semibold mb-5 ${
+    theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+  }`;
+  
+  const copyTextClasses = `p-3 rounded border font-mono text-sm leading-relaxed break-all ${
+    theme === 'dark' 
+      ? 'bg-gray-800 border-gray-600 text-white' 
+      : 'bg-white border-gray-300 text-gray-900'
+  }`;
 
   return (
     <>
       <div
-        style={nodeOutputStyle}
-        className={`node-output ${isNodeGenerated ? 'active' : 'blurred'}`}
+        className={`${nodeOutputClasses} mt-8 transition-all duration-300 ${isNodeGenerated ? 'opacity-100' : 'opacity-50 blur-sm'}`}
       >
-        <h2 style={titleStyle}>{t('workerNodeAddress')}</h2>
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Space className="action-buttons">
+        <h2 className={titleClasses}>{t('workerNodeAddress')}</h2>
+        <div className="space-y-4 w-full">
+          <div className="flex flex-wrap gap-2">
             <Button
               disabled={!isNodeGenerated}
-              href={isNodeGenerated ? `clash://install-config/?url=${encodeURIComponent(
-                `https://edsub.pages.dev/sub/clash-meta?url=${encodeURIComponent(
-                  node
-                )}&insert=false`
-              )}&name=worker节点` : undefined}
-              icon={<ThunderboltOutlined />}
+              asChild={isNodeGenerated}
               className="btn-clash"
             >
-              {t('importToClash')}
+              {isNodeGenerated ? (
+                <a href={`clash://install-config/?url=${encodeURIComponent(
+                  `https://edsub.pages.dev/sub/clash-meta?url=${encodeURIComponent(
+                    node
+                  )}&insert=false`
+                )}&name=worker节点`}>
+                  ⚡ {t('importToClash')}
+                </a>
+              ) : (
+                <span>⚡ {t('importToClash')}</span>
+              )}
             </Button>
             <Button
               disabled={!isNodeGenerated}
-              href={isNodeGenerated ? `shadowrocket://add/sub://${window.btoa(
-                `https://edsub.pages.dev/sub/clash-meta?url=${encodeURIComponent(
-                  node
-                )}&insert=false`
-              )}?remark=cf%20worker` : undefined}
-              icon={<RocketOutlined />}
+              asChild={isNodeGenerated}
               className="btn-shadowrocket"
             >
-              {t('importToShadowrocket')}
+              {isNodeGenerated ? (
+                <a href={`shadowrocket://add/sub://${window.btoa(
+                  `https://edsub.pages.dev/sub/clash-meta?url=${encodeURIComponent(
+                    node
+                  )}&insert=false`
+                )}?remark=cf%20worker`}>
+                  🚀 {t('importToShadowrocket')}
+                </a>
+              ) : (
+                <span>🚀 {t('importToShadowrocket')}</span>
+              )}
             </Button>
             <Button
               disabled={!isNodeGenerated}
-              href={isNodeGenerated ? url : undefined}
-              target="_blank"
-              icon={<AccountBookFilled />}
+              asChild={isNodeGenerated}
               className="btn-manage"
             >
-              {t('manageNode')}
+              {isNodeGenerated ? (
+                <a href={url} target="_blank" rel="noopener noreferrer">
+                  📋 {t('manageNode')}
+                </a>
+              ) : (
+                <span>📋 {t('manageNode')}</span>
+              )}
             </Button>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="flex gap-2">
               <FacebookShareButton
                 url={window.location.href}
                 hashtag={`#CFWorker ${getRandomShareText()}`}
@@ -146,68 +148,72 @@ const NodeOutput: React.FC<NodeOutputProps> = ({
                 <WhatsappIcon size={32} round />
               </WhatsappShareButton>
             </div>
-          </Space>
+          </div>
           <CopyToClipboard
             text={node}
             onCopy={() => {
               if (isNodeGenerated) {
                 notification.success({
-                  message: t('copiedSuccess'),
-                  description: t('copiedSuccessDesc', 'Node configuration has been copied to clipboard.'),
+                  message: t('copySuccess'),
+                  description: t('copySuccessDesc'),
                   placement: 'topRight',
-                  duration: 2,
                 });
               }
             }}
           >
-            <p style={copyTextStyle}>
-              {isNodeGenerated ? node : t('nodeInfoPlaceholder')}
-            </p>
+            <Button
+              disabled={!isNodeGenerated}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              📋 {t('copyNodeAddress')}
+            </Button>
           </CopyToClipboard>
-        </Space>
+          <div className={copyTextClasses}>{node}</div>
+        </div>
       </div>
 
       {/* Share Modal */}
-      <Modal
-        title={t('title')}
-        open={showShareModal}
-        onCancel={onCloseShareModal}
-        footer={[
-          <Button key="close" onClick={onCloseShareModal}>
-            {t('close')}
-          </Button>
-        ]}
-      >
-        <p style={{ marginBottom: '20px' }}>{t('shareDescription')}</p>
-        <Space style={{ width: '100%', justifyContent: 'center', gap: '16px' }}>
-          <FacebookShareButton
-            url={window.location.href}
-            hashtag={`#CFWorker ${getRandomShareText()}`}
-          >
-            <FacebookIcon size={64} round />
-          </FacebookShareButton>
-          <TwitterShareButton
-            url={window.location.href}
-            title={getRandomShareText()}
-          >
-            <TwitterIcon size={64} round />
-          </TwitterShareButton>
-          <TelegramShareButton
-            url={window.location.href}
-            title={getRandomShareText()}
-          >
-            <TelegramIcon size={64} round />
-          </TelegramShareButton>
-          <WhatsappShareButton
-            url={window.location.href}
-            title={getRandomShareText()}
-          >
-            <WhatsappIcon size={64} round />
-          </WhatsappShareButton>
-        </Space>
-      </Modal>
+      <Dialog open={showShareModal} onOpenChange={onCloseShareModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('title')}</DialogTitle>
+          </DialogHeader>
+          <p className="mb-5">{t('shareDescription')}</p>
+          <div className="flex justify-center gap-4">
+            <FacebookShareButton
+              url={window.location.href}
+              hashtag={`#CFWorker ${getRandomShareText()}`}
+            >
+              <FacebookIcon size={64} round />
+            </FacebookShareButton>
+            <TwitterShareButton
+              url={window.location.href}
+              title={getRandomShareText()}
+            >
+              <TwitterIcon size={64} round />
+            </TwitterShareButton>
+            <TelegramShareButton
+              url={window.location.href}
+              title={getRandomShareText()}
+            >
+              <TelegramIcon size={64} round />
+            </TelegramShareButton>
+            <WhatsappShareButton
+              url={window.location.href}
+              title={getRandomShareText()}
+            >
+              <WhatsappIcon size={64} round />
+            </WhatsappShareButton>
+          </div>
+          <DialogFooter>
+            <Button onClick={onCloseShareModal}>
+              {t('close')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
 
-export default NodeOutput; 
+export default NodeOutput;
